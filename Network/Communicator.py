@@ -2,13 +2,10 @@ import socket,sys
 from subprocess import Popen, PIPE
 from nbstreamreader import NonBlockingStreamReader as NBSR
 
-# TODO : Move constants to another file
-SAFETY_TIMEOUT = 15
-class Communicator:
+class Communicator(object):
 	def __init__(self): 
 		self.Socket = None
-		self.ChildProcess = None
-		self.Timer = None   # Game Timer
+		self.ChildProcess = None		
 
 	def setSocket(self,Socket):
 		self.Socket = Socket
@@ -38,35 +35,39 @@ class Communicator:
 		if(self.isSocketNotNone()):
 			data = None
 			while True:
-				# -- Handle connection Timeout (Check Signal Setting in Python)--- #
+				# -- TODO: Handle connection Timeout (Check Signal Setting in Python)--- #
 				data = self.Socket.recv(1024)
 				if(len(data) <= 0):
 					continue
 				return data
-	def CreateChildProcess(self,Execution_Command,Executable_File):
-		# TODO: Check existance of Executable_File and match Extension with Execution_Command
+	def CreateChildProcess(self,Execution_Command,Executable_File):		
 		self.ChildProcess = Popen ([Execution_Command, Executable_File], stdin = PIPE, stdout = PIPE, bufsize=0)
 		self.ModifiedOutStream = NBSR(self.ChildProcess.stdout)		
 		
 
-	def RecvDataOnPipe(self):
+	def RecvDataOnPipe(self,TIMEOUT):
 		data = None
 		if(self.isChildProcessNotNone()):
 			try:
-				data = self.ModifiedOutStream.readline(SAFETY_TIMEOUT)
+				data = self.ModifiedOutStream.readline(TIMEOUT)
 			except:
-				print 'Something Bad Happened'
+				pass
 		return data
 						
 	def SendDataOnPipe(self,data):
+		success_flag = False
 		if(self.isChildProcessNotNone()):
 			try:
-				self.ChildProcess.stdin.write(data)				
+				self.ChildProcess.stdin.write(data)
+				success_flag = True
 			except:
-				print 'Something Bad Happened'
+				success_flag = False
+		return success_flag
+	
 	def closeChildProcess(self):
-		if(self.isChildProcessNotNone()):
+		if(self.isChildProcessNotNone()):			
 			self.ChildProcess.kill()
+			self.ChildProcess = None
 		
 
 if __name__ == '__main__':

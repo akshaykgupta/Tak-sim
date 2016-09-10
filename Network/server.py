@@ -1,4 +1,4 @@
-import socket,sys
+import socket,sys,json
 from Communicator import Communicator
 
 class Server:
@@ -19,17 +19,28 @@ class Server:
 			self.communicator_list.append(Communicator())
 			self.communicator_list[-1].setSocket(c)						
 	
-	def RecvDataFromClient(self,client_id):
-		# -- TODO: INDEX CHECKING ---- #
+	def RecvDataFromClient(self,client_id):		
+		if(client_id >= len(self.communicator_list)):
+			return None
 		return self.communicator_list[client_id].RecvDataOnSocket()
 
-	def SendData2Client(self,client_id,data):
-		# -- TODO: INDEX CHECKING ---- #
-		self.communicator_list[client_id].SendDataOnSocket(data)
+	def SendData2Client(self,client_id,data):		
+		if(client_id < len(self.communicator_list)):			
+			self.communicator_list[client_id].SendDataOnSocket(data)
 
-	def CloseClient(self,client_id):
-		# -- TODO: INDEX CHECKING ---- #
-		self.communicator_list[client_id].closeSocket()
+	def CloseClient(self,client_id):		
+		if(client_id < len(self.communicator_list)):
+			self.communicator_list[client_id].closeSocket()
+			self.communicator_list[client_id] = None
+	
+	def CloseAllClients(self):
+		for idx in xrange(len(self.communicator_list)):
+			if(not self.communicator_list[idx] is None):
+				self.communicator_list[idx].closeSocket()
+				self.communicator_list[idx] = None
+		self.communicator_list = []
+
+
 
 if __name__ == '__main__':
 	print 'Start'
