@@ -1,4 +1,4 @@
-import socket,sys
+import socket,sys,signal
 from subprocess import Popen, PIPE
 from nbstreamreader import NonBlockingStreamReader as NBSR
 
@@ -9,6 +9,12 @@ class Communicator(object):
 
 	def setSocket(self,Socket):
 		self.Socket = Socket
+
+	def NetworkTimeoutHandler(self):
+		def _handle(signal,frame):
+			self.closeSocket()
+		return _handle
+
 
 	def isSocketNotNone(self):
 		if(self.Socket is None):
@@ -24,22 +30,40 @@ class Communicator(object):
 	
 	def closeSocket(self):
 		if(self.isSocketNotNone()):
-			self.Socket.close()
+			# Try in case the connection is already closed by the other process
+			try:				
+				self.Socket.close()
+			except:
+				pass
 			self.Socket = None
 
 	def SendDataOnSocket(self,data):
+		success_flag = False
 		if(self.isSocketNotNone()):
-			self.Socket.send(data)
+			try:
+				self.Socket.send(data)
+				success_flag = True
+			except:
+				pass
+		return success_flag
 
-	def RecvDataOnSocket(self):
+	def RecvDataOnSocket(self,TIMEOUT):
+		data = None
 		if(self.isSocketNotNone()):
-			data = None
+			signal.signal(signal.SIGALRM, self.NetworkTimeoutHandler())
+			signal.alarm(TIMEOUT)
 			while True:
-				# -- TODO: Handle connection Timeout (Check Signal Setting in Python)--- #
-				data = self.Socket.recv(1024)
-				if(len(data) <= 0):
-					continue
-				return data
+				try:			
+					data = self.Socket.recv(1024)
+				except:
+					data = None
+					break
+				if(len(data) > 0):
+					break				
+			signal.alarm(0)
+		return data
+		
+
 	def CreateChildProcess(self,Execution_Command,Executable_File):		
 		self.ChildProcess = Popen ([Execution_Command, Executable_File], stdin = PIPE, stdout = PIPE, bufsize=0)
 		self.ModifiedOutStream = NBSR(self.ChildProcess.stdout)		
@@ -61,7 +85,7 @@ class Communicator(object):
 				self.ChildProcess.stdin.write(data)
 				success_flag = True
 			except:
-				success_flag = False
+				pass
 		return success_flag
 	
 	def closeChildProcess(self):

@@ -12,21 +12,31 @@ class Server:
 		s.bind((host,port_no))
 		s.listen(5)
 		client_count = 0
-		while client_count < num_clients:
-			# -- Change this for multi client games -- #
+		# TODO : Handle TIMEOUT using signal
+		while client_count < num_clients:			
 			c,addr = s.accept()
 			client_count += 1
 			self.communicator_list.append(Communicator())
 			self.communicator_list[-1].setSocket(c)						
 	
-	def RecvDataFromClient(self,client_id):		
-		if(client_id >= len(self.communicator_list)):
-			return None
-		return self.communicator_list[client_id].RecvDataOnSocket()
+	def RecvDataFromClient(self,client_id,TIMEOUT=20):		
+		data = None
+		if(client_id < len(self.communicator_list)):					
+			data = self.communicator_list[client_id].RecvDataOnSocket(TIMEOUT)
+			if(data is None):
+				print 'ERROR : TIMEOUT ON CLIENT ' + str(client_id) + ' END'
+				self.communicator_list[client_id].closeSocket()
+		return data
 
 	def SendData2Client(self,client_id,data):		
+		success_flag = False
 		if(client_id < len(self.communicator_list)):			
-			self.communicator_list[client_id].SendDataOnSocket(data)
+			success_flag = self.communicator_list[client_id].SendDataOnSocket(data)
+			if(not success_flag):
+				print 'ERROR : COULD NOT SEND DATA TO CLIENT ' + str(client_id)
+				self.communicator_list[client_id].closeSocket()
+				self.communicator_list[client_id] = None
+		return success_flag
 
 	def CloseClient(self,client_id):		
 		if(client_id < len(self.communicator_list)):

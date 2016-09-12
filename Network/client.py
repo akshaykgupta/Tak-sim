@@ -4,15 +4,22 @@ import socket,sys,json,os
 
 class Client(Communicator):
 	def __init__(self):
-		self.TIMER = 15
+		self.GAME_TIMER = 15
+		self.NETWORK_TIMER = 60
 		super(Client,self).__init__()
 		pass	
 	
-	def getTimer(self):
-		return self.TIMER
+	def setNetworkTimer(self,Time_in_Seconds):
+		self.NETWORK_TIMER = Time_in_Seconds
 	
-	def setTimer(self,Time_in_Seconds):
-		self.TIMER = Time_in_Seconds
+	def getNetworkTimer(self):
+		return self.NETWORK_TIMER
+
+	def getGameTimer(self):
+		return self.GAME_TIMER
+	
+	def setGameTimer(self,Time_in_Seconds):
+		self.GAME_TIMER = Time_in_Seconds
 
 	def CheckExeFile(self,Execution_Command,Executable_File):
 		""" Checks the Existance of the Executable File and
@@ -65,47 +72,58 @@ class Client(Communicator):
 			print 'OR THE EXECUTION COMMAND TO RUN THE FILE ',Execution_Command,' IS INCORRECT'			
 
 	def Connect2Server(self,server_address,port_no):
-		self.clientSocket = socket.socket()
-		self.clientSocket.connect((server_address,port_no))		
-		super(Client,self).setSocket(self.clientSocket)
-
-	def SendData2Server(self,data,ErrorMeta = ''):		
-		""" Sends Data to the Server as a json object of the following format.
-		{
-			meta : '' / MetaData in case of an Error
-			action : 'NORMAL' / 'KILLPROC' in case of an Error
-			data : 'DATA' / '' in case of an Error 
-		} 
-		Args:
-			data : The data to be sent to the server. This can be: 
-						A move, which would be a string 
-						'' in case of an ERROR (wrong move, Timeout etc)
-			ErrorMeta : The meta data of the Error ( UNEXPECTED STOP, WRONG MOVE etc.)
-		Returns:
-			None 
+		"""Connects to server with given IP Address and Port No. 
+		Args: 
+			server_address : IP Address
+			Port No : Port Number
+		Returns: 
+			success_flag : A boolean to indicate if connection was successful or not
 		"""
-		#TODO : Implement a flag, similar to SendData2Process, to denote success and failure
-		sendData = None
-		action = ''
-		if(ErrorMeta == ''):
-			assert(data == '')
-			action = 'KILLPROC'
-		else:			
-			assert(ErrorMeta == '')
-			action = 'NORMAL'										
-		sendDat = json.dumps({'meta':ErrorMeta,'action':action,'data':data})
-		super(Client,self).SendDataOnSocket(sendData)
+		success_flag = True
+		try:
+			self.clientSocket = socket.socket()
+			self.clientSocket.connect((server_address,port_no))		
+			super(Client,self).setSocket(self.clientSocket)
+		except:
+			success_flag = False
+		return success_flag
+
+	def SendData2Server(self,data):		
+		""" Sends data (a dictionary) to the Server as a json object
+		In case action == 'FINISH', closes the pipe on this end
+		Args:
+			data : a dictionary of the following format:
+			{
+				meta : The meta data in case of an error ( UNEXPECTED STOP, WRONG MOVE etc.), otherwise ''	
+				action : The action to be taken (KILLPROC, NORMAL, FINISH)
+				data : Move String or '' in case of an Error
+			}
+		Returns:			
+			success_flag : True if successful in sending, False otherwise
+		"""				
+		if((data['action'] == 'KILLPROC') or (data['action'] == 'FINISH')):
+			super(Client,self).closeChildProcess()		
+		
+		sendDat = json.dumps(data)
+		success_flag =  super(Client,self).SendDataOnSocket(sendData)
+		if(not success_flag):
+			print 'ERROR : FAILED TO SEND DATA TO SERVER'
+			super(Client,self).closeSocket()
+		return success_flag
 
 	
 	def RecvDataFromServer(self):
-		""" Receives data from the Server as a string, and Returns the Data.
-			In case of an error, prints the error, and closes the pipe process
+		""" Receives data from the Server as a string, and Returns the Move.
+			Uses self.NETWORK_TIMER to decide how long to wait for input from Server
+			In case of an error, prints the error, and closes the pipe process and the socket
+			In case the last move is made by other client, closes the pipe process and 
+			returns the data
 		Args:
 			None
 		Returns:
-			retData : String in case there are no errors, otherwise None
+			retData : String (Move) in case there are no errors, otherwise None
 		"""		
-		data = super(Client,self).RecvDataOnSocket()
+		data = super(Client,self).RecvDataOnSocket(self.NETWORK_TIMER)
 		retData = None
 		if(data == None):			
 			print 'ERROR : TIMEOUT ON SERVER END'
@@ -118,42 +136,46 @@ class Client(Communicator):
 			elif(data['action'] == 'KILLPROC'):
 				print 'ERROR : ' + data['meta'] + ' ON OTHER CLIENT'
 				super(Client,self).closeChildProcess()
-				super(Client,self).closeSocket()				
+				super(Client,self).closeSocket()
+			elif(data['action'] == 'FINISH'):
+				super(Client,self).closeChildProcess()
+				super(Client,self).closeSocket()
+				retData = data['data']
 		return retData
 	
 	def RecvDataFromProcess(self):
-		"""
-			Receives Data from the process. This does not implement checks 
+		"""Receives Data from the process. This does not implement checks 
 			on the validity of game moves. Hence, the retData from here is not final
 			, i.e, it may be different than what is sent to the server.
+			Note: The Action 'FINISH' is set internally by game, not by the network
 			Handles Errors like Exceptions thrown by process. 
-			Uses self.TIMER to decide how long to wait for a timeout.
+			Uses self.GAME_TIMER to decide how long to wait for a timeout.
 			For both the above cases, prints the error msg and closes the connection to 
 			the process. 
 		Args:
 			None
 		Returns:
-			retData : JSON DUMP (string, loaded with json.loads(string_name))
-					  of the nature : 
+			retData : dictionary of the nature : 
 					  {
 							meta : '' / MetaData in case of an Error
 							action : 'NORMAL' / 'KILLPROC' in case of an Error
 							data : 'DATA' / '' in case of an Error 
 						}
+					  None in case of an error
 		"""
-		data = super(Client,self).RecvDataOnPipe(self.TIMER)
+		data = super(Client,self).RecvDataOnPipe(self.GAME_TIMER)
 		retData = None		
 		if(data == None):								
 			print 'ERROR : THIS CLIENT STOPPED UNEXPECTEDLY'
 			super(Client,self).closeChildProcess()
-			retData = json.dumps({'meta':'UNEXPECTED STOP','action':'KILLPROC','data':''})
+			retData = {'meta':'UNEXPECTED STOP','action':'KILLPROC','data':''}
 		else:
-			retData = json.dumps({'meta':'','action':'NORMAL','data':data})
+			retData = {'meta':'','action':'NORMAL','data':data}
 		return retData
 	
 	
 	def SendData2Process(self,data):
-		""" Sends Data to the process. Handles the case if the process being communicated to has closed.
+		""" Sends Data (Move) to the process. Handles the case if the process being communicated with has closed.
 		Args: 
 			data : string data, to send the process (a game move)
 		Returns:
