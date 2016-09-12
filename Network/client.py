@@ -77,16 +77,13 @@ class Client(Communicator):
 			server_address : IP Address
 			Port No : Port Number
 		Returns: 
-			success_flag : A boolean to indicate if connection was successful or not
-		"""
-		success_flag = True
-		try:
-			self.clientSocket = socket.socket()
-			self.clientSocket.connect((server_address,port_no))		
-			super(Client,self).setSocket(self.clientSocket)
-		except:
-			success_flag = False
-		return success_flag
+			None
+		"""				
+		self.clientSocket = socket.socket()
+		self.clientSocket.connect((server_address,port_no))		
+		super(Client,self).setSocket(self.clientSocket)
+		
+		
 
 	def SendData2Server(self,data):		
 		""" Sends data (a dictionary) to the Server as a json object
@@ -115,7 +112,7 @@ class Client(Communicator):
 	def RecvDataFromServer(self):
 		""" Receives data from the Server as a string, and Returns the Move.
 			Uses self.NETWORK_TIMER to decide how long to wait for input from Server
-			In case of an error, prints the error, and closes the pipe process and the socket
+			In case of an error, prints the error, and closes the pipe process
 			In case the last move is made by other client, closes the pipe process and 
 			returns the data
 		Args:
@@ -135,11 +132,9 @@ class Client(Communicator):
 				retData = data['data']
 			elif(data['action'] == 'KILLPROC'):
 				print 'ERROR : ' + data['meta'] + ' ON OTHER CLIENT'
-				super(Client,self).closeChildProcess()
-				super(Client,self).closeSocket()
+				super(Client,self).closeChildProcess()				
 			elif(data['action'] == 'FINISH'):
-				super(Client,self).closeChildProcess()
-				super(Client,self).closeSocket()
+				super(Client,self).closeChildProcess()				
 				retData = data['data']
 		return retData
 	
