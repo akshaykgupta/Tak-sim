@@ -5,9 +5,7 @@ import math
 class Client(Communicator):
 	def __init__(self):
 		self.GAME_TIMER = 15000 # in Milli Seconds
-		self.NETWORK_TIMER = 60
-		self.start_time = 0.0
-		self.end_time = 0.0
+		self.NETWORK_TIMER = 60		
 		super(Client,self).__init__()
 		pass	
 	
@@ -161,27 +159,23 @@ class Client(Communicator):
 						}
 					  None in case of an error
 		"""		
-		self.start_time = time.time()
+		start_time = time.time()
 		BUFFER_TIMER = math.ceil(self.GAME_TIMER / 1000.0)
 		data = super(Client,self).RecvDataOnPipe(BUFFER_TIMER)
-		self.end_time = time.time()
+		end_time = time.time()
 		retData = None		
 		if(data == None):								
 			print 'ERROR : THIS CLIENT STOPPED UNEXPECTEDLY OR TIMED OUT'
-			super(Client,self).closeChildProcess()
-			self.start_time = 0.0
-			self.end_time = 0.0
+			super(Client,self).closeChildProcess()			
 			retData = {'meta':'UNEXPECTED STOP','action':'KILLPROC','data':''}
 		else:			
 			# 1 Milli Second Default
-			time_delta = max(1,int((self.end_time - self.start_time) * 1000))
+			time_delta = max(1,int((end_time - start_time) * 1000))
 			self.GAME_TIMER -= time_delta
 			if(self.GAME_TIMER > 0):
 				retData = {'meta':'','action':'NORMAL','data':data}
 			else:
-				retData = {'meta':'TIMEOUT','action':'FINISH','data':data}
-				self.start_time = 0.0
-				self.end_time = 0.0
+				retData = {'meta':'TIMEOUT','action':'FINISH','data':data}				
 		return retData
 	
 	
