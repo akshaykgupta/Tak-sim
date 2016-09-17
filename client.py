@@ -208,8 +208,10 @@ if __name__ == '__main__':
 	if player_id == 'Player 2':
 		move = client.RecvDataFromServer()
 		if move:
-			success = game.execute_move(move)
+			success = game.execute_move(move)			
 			client.SendData2Process(move)
+		else:
+			sys.exit(0)	
 	while(True):
 			move = client.RecvDataFromProcess()
 			if move['action'] == 'KILLPROC':
@@ -225,7 +227,7 @@ if __name__ == '__main__':
 				message['action'] = 'FINISH'
 				message['data'] = move['data']
 				if success == 2:
-					message['meta'] = 'Player 1 win'
+					message['meta'] = 'Player 1 wins'
 				else:
 					message['meta'] = 'Player 2 wins'
 			elif success == 1:
@@ -236,6 +238,9 @@ if __name__ == '__main__':
 			move = client.RecvDataFromServer()
 			if move:
 				success = game.execute_move(move)
-				client.SendData2Process(move)
+				if(success == 2 or success == 3):
+					break
+				else:					
+					client.SendData2Process(move)
 			else:
 				break

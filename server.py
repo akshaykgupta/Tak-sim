@@ -52,7 +52,7 @@ class Server:
 			data = self.communicator_list[client_id].RecvDataOnSocket(self.NETWORK_TIMER)
 			if(data is None):
 				print 'ERROR : TIMEOUT ON CLIENT NETWORK' + str(client_id) + ' END'
-				self.communicator_list[client_id].closeSocket()
+				self.CloseClient(client_id)
 		return data
 
 	def SendData2Client(self,client_id,data):		
@@ -87,7 +87,6 @@ class Server:
 			None
 		"""		
 		if(client_id < len(self.communicator_list)):
-			self.communicator_list[client_id].closeSocket()
 			self.communicator_list[client_id] = None
 	
 	def CloseAllClients(self):
@@ -99,8 +98,7 @@ class Server:
 		"""
 		for idx in xrange(len(self.communicator_list)):
 			if(not self.communicator_list[idx] is None):
-				self.communicator_list[idx].closeSocket()
-				self.communicator_list[idx] = None
+				self.CloseClient(idx)
 		self.communicator_list = []
 
 if __name__ == '__main__':
