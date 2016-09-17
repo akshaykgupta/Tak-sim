@@ -44,6 +44,7 @@ class Game:
 		3 if player 2 wins
 		'''
 
+		move_string = move_string.strip()
 		if self.turn == 0:
 			self.moves += 1
 		if self.moves != 1:
@@ -53,21 +54,23 @@ class Game:
 		if len(move_string) <= 0:
 			return 0
 		if move_string[0].isalpha():
-			square = square_to_num(move_string[1:3])
+			square = square_to_num(move_string[1:])
 			if square == -1:
 				return 0
 			if len(self.board[square]) != 0:
 				return 0
-			if move_string[0] == 'F' or move_string == 'S':
-				if self.players[self.turn].flats == 0:
+			if move_string[0] == 'F' or move_string[0] == 'S':
+				if self.players[current_piece].flats == 0:
 					return 0
 				self.board[square].append((current_piece, move_string[0]))
-				self.players[self.turn].flats -= 1
+				self.players[current_piece].flats -= 1
 			elif move_string[0] == 'C':
-				if self.players[self.turn].capstones == 0:
+				if self.moves == 1:
+					return 0
+				if self.players[current_piece].capstones == 0:
 					return 0
 				self.board[square].append((current_piece, move_string[0]))
-				self.players[self.turn].capstones -= 1
+				self.players[current_piece].capstones -= 1
 			else:
 				return 0
 		elif move_string[0].isdigit():
@@ -81,9 +84,9 @@ class Game:
 				return 0
 			direction = move_string[3]
 			if direction == '+':
-				change = 5
+				change = self.n
 			elif direction == '-':
-				change = -5
+				change = -self.n
 			elif direction == '>':
 				change = 1
 			elif direction == '<':
@@ -122,16 +125,21 @@ class Game:
 				next_square = prev_square + change
 				if board[next_square][-1][1] == 'S':
 					board[next_square][-1] = (board[next_square][-1][0], 'F')
-				board[next_square] += board[square][-count:-count+next_count]
+				if next_count - count == 0:
+					board[next_square] += board[square][-count:]
+				else:
+					board[next_square] += board[square][-count:-count+next_count]
 				prev_square = next_square
+				count -= next_count
+			count = int(move_string[0])
 			board[square] = board[square][:-count]
 		else:
 			return 0
-		self.turn = 1 - self.turn
 		if self.check_win(self.turn):
 			return 2 + self.turn
 		if self.check_win(1 - self.turn):
 			return 3 - self.turn
+		self.turn = 1 - self.turn
 		return 1
 
 	def square_to_num(square_string):
@@ -140,13 +148,13 @@ class Game:
 		
 		if len(square_string) != 2:
 			return -1
-		if not square_string[0].isalpha() or not square_string[1].isdigit():
+		if not square_string[0].isalpha() or not square_string[0].islower() or not square_string[1].isdigit():
 			return -1
-		row = ord(square_string[0])
+		row = ord(square_string[0]) - 96
 		col = square_string[1]
 		if row < 1 or row > self.n or col < 1 or col > self.n:
 			return -1
-		return self.n * (row - 1) + (col - 1)
+		return self.n * (col - 1) + (row - 1)
 
 	def check_win(player):
 		'''Checks whether player has won the game
