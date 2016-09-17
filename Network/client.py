@@ -1,11 +1,11 @@
 from Communicator import Communicator
-import socket,sys,json,os
-
+import socket,sys,json,os,time
+import math
 
 class Client(Communicator):
 	def __init__(self):
-		self.GAME_TIMER = 15
-		self.NETWORK_TIMER = 60
+		self.GAME_TIMER = 15000 # in Milli Seconds
+		self.NETWORK_TIMER = 60		
 		super(Client,self).__init__()
 		pass	
 	
@@ -144,6 +144,7 @@ class Client(Communicator):
 			, i.e, it may be different than what is sent to the server.
 			Note: The Action 'FINISH' is set internally by game, not by the network
 			Handles Errors like Exceptions thrown by process. 
+			However, In case of a timeout, 'FINISH' may be thrown
 			Uses self.GAME_TIMER to decide how long to wait for a timeout.
 			For both the above cases, prints the error msg and closes the connection to 
 			the process. 
@@ -157,15 +158,24 @@ class Client(Communicator):
 							data : 'DATA' / '' in case of an Error 
 						}
 					  None in case of an error
-		"""
-		data = super(Client,self).RecvDataOnPipe(self.GAME_TIMER)
+		"""		
+		start_time = time.time()
+		BUFFER_TIMER = math.ceil(self.GAME_TIMER / 1000.0)
+		data = super(Client,self).RecvDataOnPipe(BUFFER_TIMER)
+		end_time = time.time()
 		retData = None		
 		if(data == None):								
-			print 'ERROR : THIS CLIENT STOPPED UNEXPECTEDLY'
-			super(Client,self).closeChildProcess()
+			print 'ERROR : THIS CLIENT STOPPED UNEXPECTEDLY OR TIMED OUT'
+			super(Client,self).closeChildProcess()			
 			retData = {'meta':'UNEXPECTED STOP','action':'KILLPROC','data':''}
-		else:
-			retData = {'meta':'','action':'NORMAL','data':data}
+		else:			
+			# 1 Milli Second Default
+			time_delta = max(1,int((end_time - start_time) * 1000))
+			self.GAME_TIMER -= time_delta
+			if(self.GAME_TIMER > 0):
+				retData = {'meta':'','action':'NORMAL','data':data}
+			else:
+				retData = {'meta':'TIMEOUT','action':'FINISH','data':data}				
 		return retData
 	
 	
@@ -175,11 +185,11 @@ class Client(Communicator):
 			data : string data, to send the process (a game move)
 		Returns:
 			success_flag : A boolean flag to denote the data transfer to the process was successful or not.
-		"""
-		success_flag = super(Client, self).SendDataOnPipe(data)
+		"""		
+		success_flag = super(Client, self).SendDataOnPipe(data)		
 		if(success_flag == False):
 			print 'ERROR : FAILED TO SEND DATA TO PROCESS'
-			super(Client,self).closeChildProcess()
+			super(Client,self).closeChildProcess()					
 		return success_flag
 
 
