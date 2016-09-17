@@ -1,6 +1,7 @@
 from Communicator import Communicator
 import socket,sys,json,os,time
 import math
+import Game
 
 class Client(Communicator):
 	def __init__(self):
@@ -106,6 +107,8 @@ class Client(Communicator):
 		if(not success_flag):
 			print 'ERROR : FAILED TO SEND DATA TO SERVER'
 			super(Client,self).closeSocket()
+		elif((data['action'] == 'KILLPROC') or (data['action'] == 'FINISH')):
+			super(Client,self).closeSocket()
 		return success_flag
 
 	
@@ -175,7 +178,7 @@ class Client(Communicator):
 			if(self.GAME_TIMER > 0):
 				retData = {'meta':'','action':'NORMAL','data':data}
 			else:
-				retData = {'meta':'TIMEOUT','action':'FINISH','data':data}				
+				retData = {'meta':'TIMEOUT','action':'KILLPROC','data':''}				
 		return retData
 	
 	
@@ -195,29 +198,42 @@ class Client(Communicator):
 
 if __name__ == '__main__':
 	client = Client()
+	game = Game(5)
+	client.CreateChildProcess('python', 'run.py')
 	client.Connect2Server(sys.argv[1],int(sys.argv[2]))
-	if(int(sys.argv[5]) == 1):
-		client.CreateChildProcess('sh','run.sh')
-		counter = 0;
-	else: 
-		client.CreateChildProcess(sys.argv[3],sys.argv[4])
-		counter = int(client.RecvDataFromServer())
-	# try:
-	while(counter < 100):
-		client.SendData2Process(str(counter) + '\n')
-		data = client.RecvDataOnPipe().strip()		
-		print 'Client Recieved Data From Process ', data
-		client.SendData2Server(data)
-		data = client.RecvDataFromServer()
-		print 'Client Recieved Data From Server ',data
-		counter = int(data)		
-	# except:
-		# client.closeSocket()
-	client.SendDataOnPipe(str(counter) + '\n')
-	client.closeChildProcess()
-	client.closeSocket()
-
-
-
-	
-
+	player_id = client.RecvDataFromServer()
+	client.SendData2Process(player_id)
+	if player_id == 'Player 2':
+		move = client.RecvDataFromServer()
+		if move:
+			success = game.execute_move(move)
+			client.SendData2Process(move)
+	while(True):
+			move = client.RecvDataFromProcess()
+			if move['action'] == 'KILLPROC':
+				client.SendData2Server(move)
+				break
+			success = game.execute_move(move['data'])
+			message = {}
+			if success == 0:
+				message['data'] = ''
+				message['action'] = 'KILLPROC'
+				message['meta'] = 'Invalid move'
+			elif success == 2 or success == 3:
+				message['action'] = 'FINISH'
+				message['data'] = move['data']
+				if success == 2:
+					message['meta'] = 'Player 1 win'
+				else:
+					message['meta'] = 'Player 2 wins'
+			elif success == 1:
+				message = move
+			client.SendData2Server(message)
+			if message['action'] == 'FINISH' or message['action'] == 'KILLPROC':
+				break
+			move = client.RecvDataFromServer()
+			if move:
+				success = game.execute_move(move)
+				client.SendData2Process(move)
+			else:
+				break

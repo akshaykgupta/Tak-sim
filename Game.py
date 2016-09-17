@@ -37,7 +37,11 @@ class Game:
 		self.max_right = chr(ord('a') + n - 1)
 
 	def execute_move(move_string):
-		'''Return 1 on success, 0 on failure (invalid move)
+		'''Returns
+		0 if move is invalid
+		1 if move is valid
+		2 if player 1 wins
+		3 if player 2 wins
 		'''
 
 		if self.turn == 0:
@@ -125,9 +129,9 @@ class Game:
 			return 0
 		self.turn = 1 - self.turn
 		if self.check_win(self.turn):
-			# TODO
+			return 2 + self.turn
 		if self.check_win(1 - self.turn):
-			# TODO
+			return 3 - self.turn
 		return 1
 
 	def square_to_num(square_string):

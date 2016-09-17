@@ -103,22 +103,24 @@ class Server:
 				self.communicator_list[idx] = None
 		self.communicator_list = []
 
-
-
 if __name__ == '__main__':
 	print 'Start'
 	local_Server = Server()
-	local_Server.BuildServer(int(sys.argv[1]),2)
-	while 1:
-		num_from_0 = local_Server.RecvDataFromClient(0)
-		local_Server.SendData2Client(1,num_from_0)
-		num_from_1 = local_Server.RecvDataFromClient(1)
-		local_Server.SendData2Client(0,num_from_1)
-		if(int(num_from_1) == 100):
-			local_Server.SendData2Client(1,str(int(num_from_1) + 1))
+	local_Server.BuildServer(int(sys.argv[1]), 2)
+	local_Server.SendData2Client(0, 'Player 1')
+	local_Server.SendData2Client(1, 'Player 2')
+	while(True):
+		data = local_Server.RecvDataFromClient(0)
+		local_Server.SendData2Client(1, data)
+		if not data:
 			break
-	local_Server.CloseClient(0)
-	local_Server.CloseClient(1)
-
-
-
+		data = json.loads(data)
+		if data['action'] == 'FINISH' or data['action'] == 'KILLPROC':
+			break
+		data = local_Server.RecvDataFromClient(1)
+		local_Server.SendData2Client(0, data)
+		if not data:
+			break
+		data = json.loads(data)
+		if data['action'] == 'FINISH' or data['action'] == 'KILLPROC':
+			break
