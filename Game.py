@@ -25,8 +25,8 @@ class Game:
 			raise ValueError('Board size is either 5, 6 or 7.')
 		self.max_movable = n
 		self.players = []
-		self.players.append(Player(self.max_flats, self.max_capstones))
-		self.players.append(Player(self.max_flats, self.max_capstones))
+		self.players.append(Game.Player(self.max_flats, self.max_capstones))
+		self.players.append(Game.Player(self.max_flats, self.max_capstones))
 		self.board = []
 		for i in range(total_squares):
 			self.board.append([])
@@ -94,9 +94,9 @@ class Game:
 				if next_count <= 0 or next_count > count:
 					return 0
 				next_square = prev_square + change
-				if (next_square % n == 0 and prev_square % n == n - 1):
+				if (next_square % self.n == 0 and prev_square % self.n == self.n - 1):
 					return 0
-				if (next_square % n == n - 1 and prev_square % n == 0):
+				if (next_square % self.n == self.n - 1 and prev_square % self.n == 0):
 					return 0
 				if next_square >= self.total_squares or next_square < 0:
 					return 0
@@ -124,6 +124,10 @@ class Game:
 		else:
 			return 0
 		self.turn = 1 - self.turn
+		if self.check_win(self.turn):
+			# TODO
+		if self.check_win(1 - self.turn):
+			# TODO
 		return 1
 
 	def square_to_num(square_string):
@@ -139,3 +143,67 @@ class Game:
 		if row < 1 or row > self.n or col < 1 or col > self.n:
 			return -1
 		return self.n * (row - 1) + (col - 1)
+
+	def check_win(player):
+		'''Checks whether player has won the game
+		'''
+
+		def check_win(player, direction):
+			'''Direction can be 'ver' or 'hor'
+			'''
+			visited = set()
+			dfs_stack = []
+			final_positions = set()
+			if direction == 'ver':
+				for i in range(self.n):
+					if len(self.board[i]) > 0 and self.board[i][-1][0] == player:
+						visited.add(i)
+						dfs_stack.append(i)
+					final_positions.add(self.total_squares - 1 - i)
+			elif direction == 'hor':
+				for i in range(self.n):
+					if len(self.board[i*self.n]) > 0 and self.board[i*self.n][-1][0] == player:
+						visited.add(i)
+						dfs_stack.add(i)
+					final_positions.add((i + 1) * self.n - 1)
+			while len(dfs_stack) > 0:
+				square = dfs_stack.pop()
+				if square in final_positions:
+					return True
+				nbrs = self.get_neighbours(square)
+				for nbr in nbrs:
+					if nbr not in visited and len(self.board[nbr]) > 0 and self.board[nbr][-1][0] == player:
+						dfs_stack.add(nbr)
+						visited.add(nbr)
+			return False
+
+		return check_win(player, 'hor') or check_win(player, 'ver')
+
+	def get_neighbours(square):
+		'''Generate a list of neighbours for a given square
+		Returns empty if square is invalid
+		'''
+
+		if isinstance(square, str):
+			square = self.square_to_num(square)
+		if square < 0 or square > self.total_squares:
+			return []
+		elif square == 0:
+			return [square+1, square+self.n]
+		elif square == self.n - 1:
+			return [square-1, square+self.n]
+		elif square == self.total_squares - self.n - 1:
+			return [square+1, square-self.n]
+		elif square == self.total_squares:
+			return [square-1, square-self.n]
+		elif square < self.n:
+			return [square-1, square+1, square+self.n]
+		elif square % self.n == 0:
+			return [square+1, square-self.n, square+self.n]
+		elif (square + 1) % self.n == 0:
+			return [square-1, square-self.n, square+self.n]
+		elif square > total_squares - self.n:
+			return [square-1, square+1, square-self.n]
+		else:
+			return [square-1, square+1, square-self.n, square+self.n]
+
