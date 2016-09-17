@@ -135,9 +135,11 @@ class Client(Communicator):
 				retData = data['data']
 			elif(data['action'] == 'KILLPROC'):
 				print 'ERROR : ' + data['meta'] + ' ON OTHER CLIENT'
-				super(Client,self).closeChildProcess()				
+				super(Client,self).closeChildProcess()
+				super(Client,self).closeSocket()				
 			elif(data['action'] == 'FINISH'):
 				super(Client,self).closeChildProcess()				
+				super(Client,self).closeSocket()
 				retData = data['data']
 		return retData
 	
