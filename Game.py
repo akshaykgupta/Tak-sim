@@ -117,12 +117,13 @@ class Game:
 				next_count = int(move_string[i])
 				next_square = prev_square + change
 				if board[next_square][-1][1] == 'S':
-					board[next_square][-1][1] == 'F'
+					board[next_square][-1] = (board[next_square][-1][0], 'F')
 				board[next_square] += board[square][-count:-count+next_count]
 				prev_square = next_square
 			board[square] = board[square][:-count]
 		else:
 			return 0
+		self.turn = 1 - self.turn
 		return 1
 
 	def square_to_num(square_string):
