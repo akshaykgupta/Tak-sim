@@ -4,7 +4,7 @@ class Game:
 
 	class Player:
 
-		def __init__(flats, capstones):
+		def __init__(self, flats, capstones):
 			self.flats = flats
 			self.capstones = capstones
 
@@ -28,7 +28,7 @@ class Game:
 		self.players.append(Game.Player(self.max_flats, self.max_capstones))
 		self.players.append(Game.Player(self.max_flats, self.max_capstones))
 		self.board = []
-		for i in range(total_squares):
+		for i in range(self.total_squares):
 			self.board.append([])
 		self.turn = 0
 		self.max_down = 1
@@ -168,13 +168,13 @@ class Game:
 			final_positions = set()
 			if direction == 'ver':
 				for i in range(self.n):
-					if len(self.board[i]) > 0 and self.board[i][-1][0] == player:
+					if len(self.board[i]) > 0 and self.board[i][-1][0] == player and self.board[i][-1][1] != 'S':
 						visited.add(i)
 						dfs_stack.append(i)
 					final_positions.add(self.total_squares - 1 - i)
 			elif direction == 'hor':
 				for i in range(self.n):
-					if len(self.board[i*self.n]) > 0 and self.board[i*self.n][-1][0] == player:
+					if len(self.board[i*self.n]) > 0 and self.board[i*self.n][-1][0] == player and self.board[i][-1][1] != 'S':
 						visited.add(i)
 						dfs_stack.add(i)
 					final_positions.add((i + 1) * self.n - 1)
@@ -184,7 +184,7 @@ class Game:
 					return True
 				nbrs = self.get_neighbours(square)
 				for nbr in nbrs:
-					if nbr not in visited and len(self.board[nbr]) > 0 and self.board[nbr][-1][0] == player:
+					if nbr not in visited and len(self.board[nbr]) > 0 and self.board[nbr][-1][0] == player and self.board[nbr][-1][1] != 'S':
 						dfs_stack.add(nbr)
 						visited.add(nbr)
 			return False
