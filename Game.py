@@ -4,7 +4,7 @@ class Game:
 
 	class Player:
 
-		def __init__(flats, capstones):
+		def __init__(self, flats, capstones):
 			self.flats = flats
 			self.capstones = capstones
 
@@ -28,7 +28,7 @@ class Game:
 		self.players.append(Game.Player(self.max_flats, self.max_capstones))
 		self.players.append(Game.Player(self.max_flats, self.max_capstones))
 		self.board = []
-		for i in range(total_squares):
+		for i in range(self.total_squares):
 			self.board.append([])
 		self.turn = 0
 		self.max_down = 1

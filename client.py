@@ -1,7 +1,7 @@
 from Communicator import Communicator
 import socket,sys,json,os,time
 import math
-import Game
+from Game import Game
 
 class Client(Communicator):
 	def __init__(self):
