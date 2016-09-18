@@ -3,13 +3,13 @@ from Communicator import Communicator
 
 class Server:
 	def __init__(self):
-	"""	
-		Constructor. Initializes the communicator_list to [] and the NETWORK_TIMER to 60
-	Args:
-		None
-	Returns:
-		None
-	"""
+		"""	
+			Constructor. Initializes the communicator_list to [] and the NETWORK_TIMER to 60
+		Args:
+			None
+		Returns:
+			None
+		"""
 		self.communicator_list = []
 		self.NETWORK_TIMER = 60
 
@@ -65,7 +65,7 @@ class Server:
 			success_flag : True if send was successful
 		"""
 		success_flag = False
-		if(data = None):
+		if(data is None):
 			data = {'meta': 'TIMEOUT ON CLIENT NETWORK', 'action':'KILLPROC','data':''}
 		else:
 			data = json.loads(data)
