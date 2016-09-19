@@ -236,14 +236,23 @@ if __name__ == '__main__':
 			if success == 0:
 				message['data'] = ''
 				message['action'] = 'KILLPROC'
-				message['meta'] = 'Invalid move'
+				message['meta'] = 'INVALID MOVE'
+				print 'INVALID MOVE ON THIS CLIENT'
 			elif success == 2 or success == 3:
 				message['action'] = 'FINISH'
 				message['data'] = move['data']
 				if success == 2:
 					message['meta'] = 'Player 1 wins'
+					if(player_id == 'Player 1'):
+						print 'YOU WIN'
+					else:
+						print 'YOU LOSE'
 				else:
 					message['meta'] = 'Player 2 wins'
+					if(player_id == 'Player 2'):
+						print 'YOU WIN'
+					else:
+						print 'YOU LOSE'
 			elif success == 1:
 				message = move
 			client.SendData2Server(message)
@@ -255,6 +264,16 @@ if __name__ == '__main__':
 				success = game.execute_move(move)
 				game.Render()
 				if(success == 2 or success == 3):
+					if success == 2:						
+						if(player_id == 'Player 1'):
+							print 'YOU WIN'
+						else:
+							print 'YOU LOSE'
+					else:						
+						if(player_id == 'Player 2'):
+							print 'YOU WIN'
+						else:
+							print 'YOU LOSE'
 					break
 				else:					
 					client.SendData2Process(move)

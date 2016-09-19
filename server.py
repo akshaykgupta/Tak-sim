@@ -32,7 +32,9 @@ class Server:
 			c,addr = s.accept()
 			client_count += 1
 			self.communicator_list.append(Communicator())
-			self.communicator_list[-1].setSocket(c)						
+			self.communicator_list[-1].setSocket(c)
+		s.close()
+
 	
 	def setNetworkTimer(self,Time_in_seconds):
 		self.NETWORK_TIMER = Time_in_seconds
