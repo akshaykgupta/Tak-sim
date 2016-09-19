@@ -107,9 +107,9 @@ if __name__ == '__main__':
 	print 'Start'
 	local_Server = Server()
 	local_Server.BuildServer(int(sys.argv[1]), 2)
-	data = {'meta':'', 'action':'INIT','data':'Player 1'}
+	data = {'meta':'', 'action':'INIT','data':'1 5 120'}
 	local_Server.SendData2Client(0, json.dumps(data))
-	data['data'] = 'Player 2'
+	data['data'] = '2 5 120'
 	local_Server.SendData2Client(1, json.dumps(data))
 	
 	while(True):
