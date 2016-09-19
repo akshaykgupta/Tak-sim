@@ -204,16 +204,22 @@ class Client(Communicator):
 
 if __name__ == '__main__':
 	client = Client()
-	game = Game(5)
+	
 	client.CreateChildProcess('python', 'player.py')
 	client.Connect2Server(sys.argv[1],int(sys.argv[2]))
-	player_id = client.RecvDataFromServer()			
-	print player_id,'Received from the server'
-	if(player_id is None):
-		# TODO : Show Appropreate Error message 
+	server_string = client.RecvDataFromServer()			
+	if(server_string is None):
+		print 'ERROR IN SETTING UP CONNECTIONS. SORRY'
 		sys.exit(0)	
-	client.SendData2Process(player_id)	
-	if player_id == 'Player 2':
+	server_string_list = server_string.strip().split()
+	player_id = server_string_list[0]
+	board_size = int(server_string_list[1])
+	game_timer = int(server_string_list[2])
+	game = Game(board_size)
+	client.setGameTimer(game_timer)
+	print player_id,'Received from the server'
+	client.SendData2Process(server_string)
+	if player_id == '2':
 		move = client.RecvDataFromServer()
 		if move:
 			move = move.strip()
@@ -242,14 +248,14 @@ if __name__ == '__main__':
 				message['action'] = 'FINISH'
 				message['data'] = move['data']
 				if success == 2:
-					message['meta'] = 'Player 1 wins'
-					if(player_id == 'Player 1'):
+					message['meta'] = '1 wins'
+					if(player_id == '1'):
 						print 'YOU WIN'
 					else:
 						print 'YOU LOSE'
 				else:
-					message['meta'] = 'Player 2 wins'
-					if(player_id == 'Player 2'):
+					message['meta'] = '2 wins'
+					if(player_id == '2'):
 						print 'YOU WIN'
 					else:
 						print 'YOU LOSE'
@@ -265,12 +271,12 @@ if __name__ == '__main__':
 				game.Render()
 				if(success == 2 or success == 3):
 					if success == 2:						
-						if(player_id == 'Player 1'):
+						if(player_id == '1'):
 							print 'YOU WIN'
 						else:
 							print 'YOU LOSE'
 					else:						
-						if(player_id == 'Player 2'):
+						if(player_id == '2'):
 							print 'YOU WIN'
 						else:
 							print 'YOU LOSE'

@@ -1,12 +1,12 @@
 import sys
 import pdb
 import time
-data = sys.stdin.readline().strip()
+data = sys.stdin.readline().strip().split()[0]
 moveFile = None
 player = -1
 allMoves = None
 
-if(data == 'Player 1'):
+if(data == '1'):
 	player = 1
 	moveFile = open('whiteMoves.txt','rb')
 	allMoves = moveFile.readlines()
@@ -17,7 +17,7 @@ else:
 if(player == 1):
 	idx = 0
 	while True:
-		# time.sleep(1)		
+		time.sleep(1)		
 		move = allMoves[idx].strip()
 		# Write move to client		
 		move = move + '\n'		
@@ -33,7 +33,7 @@ elif(player == 2):
 	while True:		
 		# read move from client
 		move = sys.stdin.readline()
-		# time.sleep(1)
+		time.sleep(1)
 		move = allMoves[idx].strip()
 		#Send move from client
 		sys.stdout.write(move + "\n")
