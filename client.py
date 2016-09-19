@@ -20,7 +20,7 @@ class Client(Communicator):
 		return self.GAME_TIMER
 	
 	def setGameTimer(self,Time_in_Seconds):
-		self.GAME_TIMER = Time_in_Seconds
+		self.GAME_TIMER = Time_in_Seconds * 1000
 
 	def CheckExeFile(self,Execution_Command,Executable_File):
 		""" Checks the Existance of the Executable File and
@@ -217,6 +217,7 @@ if __name__ == '__main__':
 	game_timer = int(server_string_list[2])
 	game = Game(board_size)
 	client.setGameTimer(game_timer)
+	print 'Game Timer',game_timer
 	print player_id,'Received from the server'
 	client.SendData2Process(server_string)
 	if player_id == '2':
