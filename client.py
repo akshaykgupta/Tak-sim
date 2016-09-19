@@ -225,7 +225,7 @@ if __name__ == '__main__':
 		if move:
 			move = move.strip()
 			success = game.execute_move(move)			
-			game.Render()
+			game.render()
 			client.SendData2Process(move)
 		else:
 			sys.exit(0)	
@@ -237,7 +237,7 @@ if __name__ == '__main__':
 			move['data'] = move['data'].strip()
 			print 'Checking for move ', move['data']
 			success = game.execute_move(move['data'])
-			game.Render()
+			game.render()
 			print success
 			message = {}
 			if success == 0:
@@ -269,7 +269,7 @@ if __name__ == '__main__':
 			if move:
 				move = move.strip()
 				success = game.execute_move(move)
-				game.Render()
+				game.render()
 				if(success == 2 or success == 3):
 					if success == 2:						
 						if(player_id == '1'):
