@@ -132,7 +132,7 @@ class Client(Communicator):
 		else:
 			data = json.loads(data)
 			if(data['action'] == 'NORMAL'):
-				retData = data['data'].strip()
+				retData = data['data']
 			elif(data['action'] == 'KILLPROC'):
 				print 'ERROR : ' + data['meta'] + ' ON OTHER CLIENT'
 				super(Client,self).closeChildProcess()
@@ -140,7 +140,7 @@ class Client(Communicator):
 			elif(data['action'] == 'FINISH'):
 				super(Client,self).closeChildProcess()				
 				super(Client,self).closeSocket()
-				retData = data['data'].strip()
+				retData = data['data']
 		return retData
 	
 	def RecvDataFromProcess(self):
@@ -178,7 +178,7 @@ class Client(Communicator):
 			time_delta = max(1,int((end_time - start_time) * 1000))
 			self.GAME_TIMER -= time_delta
 			if(self.GAME_TIMER > 0):
-				retData = {'meta':'','action':'NORMAL','data':data.strip()}
+				retData = {'meta':'','action':'NORMAL','data':data}
 			else:
 				retData = {'meta':'TIMEOUT','action':'KILLPROC','data':''}				
 		return retData
@@ -208,10 +208,11 @@ if __name__ == '__main__':
 	if(player_id is None):
 		# TODO : Show Appropreate Error message 
 		sys.exit(0)
-		
+
 	if player_id == 'Player 2':
 		move = client.RecvDataFromServer()
 		if move:
+			move = move.strip()
 			success = game.execute_move(move)			
 			client.SendData2Process(move)
 		else:
@@ -221,6 +222,7 @@ if __name__ == '__main__':
 			if move['action'] == 'KILLPROC':
 				client.SendData2Server(move)
 				break
+			move['data'] = move['data'].strip()
 			success = game.execute_move(move['data'])
 			message = {}
 			if success == 0:
@@ -241,6 +243,7 @@ if __name__ == '__main__':
 				break
 			move = client.RecvDataFromServer()
 			if move:
+				move = move.strip()
 				success = game.execute_move(move)
 				if(success == 2 or success == 3):
 					break
