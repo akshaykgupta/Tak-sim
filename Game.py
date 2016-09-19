@@ -8,11 +8,6 @@ class Game:
 			self.flats = flats
 			self.capstones = capstones
 
-	def Render(self):
-		print 'PRINTING THE GAME ....'	
-		print self.__str__()
-		print '\n\n\n'
-
 	def __init__(self, n):
 		self.n = n
 		self.moves = 0
@@ -40,10 +35,10 @@ class Game:
 		self.max_up = n
 		self.max_left = 'a'
 		self.max_right = chr(ord('a') + n - 1)
+		self.winner = {}
 	
 	def __str__(self):
-		'''
-		Returns a string representation of the current
+		'''Returns a string representation of the current
 		state of the game
 		'''
 		game_string = ''
@@ -55,7 +50,12 @@ class Game:
 		for i in xrange(self.n-1, -1, -1):
 			game_string += str(self.board[i*self.n:(i+1)*self.n])
 			game_string += '\n'
-		return game_string	
+		return game_string
+
+	def render(self):
+		print 'PRINTING THE GAME ....'	
+		print self.__str__()
+		print '\n\n\n'
 
 	def execute_move(self,move_string):
 		'''Returns
@@ -157,10 +157,19 @@ class Game:
 			self.board[square] = self.board[square][:-count]
 		else:
 			return 0
-		if self.check_win(self.turn):
+		if self.check_road_win(self.turn):
+			self.winner['player'] = self.turn
+			self.winner['type'] = 'road'
 			return 2 + self.turn
-		if self.check_win(1 - self.turn):
+		if self.check_road_win(1 - self.turn):
+			self.winner['player'] = 1 - self.turn
+			self.winner['type'] = 'road'
 			return 3 - self.turn
+		if self.players[0].flats == 0 or self.players[1].flats == 0:
+			winner = self.check_flat_win()
+			self.winner['player'] = winner - 2
+			self.winner['type'] = 'flat'
+			return winner
 		self.turn = 1 - self.turn
 		return 1
 
@@ -178,11 +187,11 @@ class Game:
 			return -1
 		return self.n * (col - 1) + (row - 1)
 
-	def check_win(self,player):
-		'''Checks whether player has won the game
+	def check_road_win(self, player):
+		'''Checks for a road win for player
 		'''
 
-		def check_win(player, direction):
+		def check_road_win(player, direction):
 			'''Direction can be 'ver' or 'hor'
 			'''
 			visited = set()
@@ -211,7 +220,7 @@ class Game:
 						visited.add(nbr)
 			return False
 
-		return check_win(player, 'hor') or check_win(player, 'ver')
+		return check_road_win(player, 'hor') or check_road_win(player, 'ver')
 
 	def get_neighbours(self,square):
 		'''Generate a list of neighbours for a given square
@@ -240,4 +249,43 @@ class Game:
 			return [square-1, square+1, square-self.n]
 		else:
 			return [square-1, square+1, square-self.n, square+self.n]
+
+	def check_flat_win(self):
+		'''Checks for a flat win
+		'''
+
+		count_1 = 0
+		count_2 = 0
+		for i in xrange(total_squares):
+			if len(self.board[i]) > 0 and self.board[i][-1][0] == 0 and self.board[i][-1][1] != 'S':
+				count_1 += 1
+			elif len(self.board[i]) > 0 and self.board[i][-1][0] == 1 and self.board[i][-1][1] != 'S':
+				count_2 += 1
+		if count_1 > count_2:
+			return 2
+		elif count_2 > count_1:
+			return 3
+		elif self.players[0].flats == 0:
+			return 3
+		elif self.players[1].flats == 0:
+			return 2
+
+	def calculate_score(self, player):
+		'''Calculates the score of the player
+		'''
+		if 'player' not in self.winner:
+			raise ValueError('Nobody has won yet.')
+		if player != self.winner['player']:
+			return 0
+		if self.winner['type'] == 'road':
+			return self.players[player].flats + self.total_squares
+		elif self.winner['type'] == 'flat':
+			count_1 = 0
+			count_2 = 0
+			for i in xrange(total_squares):
+				if len(self.board[i]) > 0 and self.board[i][-1][0] == 0 and self.board[i][-1][1] != 'S':
+					count_1 += 1
+				elif len(self.board[i]) > 0 and self.board[i][-1][0] == 1 and self.board[i][-1][1] != 'S':
+					count_2 += 1
+			return self.players[player].flats + abs(count_1 - count_2)
 
