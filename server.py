@@ -3,13 +3,13 @@ from Communicator import Communicator
 
 class Server:
 	def __init__(self):
-	"""	
-		Constructor. Initializes the communicator_list to [] and the NETWORK_TIMER to 60
-	Args:
-		None
-	Returns:
-		None
-	"""
+		"""	
+			Constructor. Initializes the communicator_list to [] and the NETWORK_TIMER to 60
+		Args:
+			None
+		Returns:
+			None
+		"""
 		self.communicator_list = []
 		self.NETWORK_TIMER = 60
 
@@ -32,7 +32,9 @@ class Server:
 			c,addr = s.accept()
 			client_count += 1
 			self.communicator_list.append(Communicator())
-			self.communicator_list[-1].setSocket(c)						
+			self.communicator_list[-1].setSocket(c)
+		s.close()
+
 	
 	def setNetworkTimer(self,Time_in_seconds):
 		self.NETWORK_TIMER = Time_in_seconds
@@ -65,18 +67,18 @@ class Server:
 			success_flag : True if send was successful
 		"""
 		success_flag = False
-		if(data = None):
+		if(data is None):
 			data = {'meta': 'TIMEOUT ON CLIENT NETWORK', 'action':'KILLPROC','data':''}
 		else:
 			data = json.loads(data)
 
 		if(client_id < len(self.communicator_list)):			
-			success_flag = self.communicator_list[client_id].SendDataOnSocket(json.dumps(data))
+			success_flag = self.communicator_list[client_id].SendDataOnSocket(json.dumps(data))			
 			if(not success_flag):
 				print 'ERROR : COULD NOT SEND DATA TO CLIENT ' + str(client_id)
 				self.CloseClient(client_id)
 			elif((data['action'] == 'KILLPROC') or (data['action'] == 'FINISH')):
-				self.CloseClient(client_id)
+				self.CloseClient(client_id)			
 		return success_flag
 
 	def CloseClient(self,client_id):
@@ -102,11 +104,14 @@ class Server:
 		self.communicator_list = []
 
 if __name__ == '__main__':
-	print 'Start'
+	print 'Waiting for clients to connect...'
 	local_Server = Server()
 	local_Server.BuildServer(int(sys.argv[1]), 2)
-	local_Server.SendData2Client(0, 'Player 1')
-	local_Server.SendData2Client(1, 'Player 2')
+	data = {'meta':'', 'action':'INIT','data':'1 5 120'}
+	local_Server.SendData2Client(0, json.dumps(data))
+	data['data'] = '2 5 120'
+	local_Server.SendData2Client(1, json.dumps(data))
+	print 'Beginning game...'
 	while(True):
 		data = local_Server.RecvDataFromClient(0)
 		local_Server.SendData2Client(1, data)
@@ -114,7 +119,7 @@ if __name__ == '__main__':
 			break
 		data = json.loads(data)
 		if data['action'] == 'FINISH' or data['action'] == 'KILLPROC':
-			break
+			break		
 		data = local_Server.RecvDataFromClient(1)
 		local_Server.SendData2Client(0, data)
 		if not data:
