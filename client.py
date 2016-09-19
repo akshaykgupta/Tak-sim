@@ -17,7 +17,7 @@ class Client(Communicator):
 		return self.NETWORK_TIMER
 
 	def getGameTimer(self):
-		return self.GAME_TIMER
+		return self.GAME_TIMER // 1000
 	
 	def setGameTimer(self,Time_in_Seconds):
 		self.GAME_TIMER = Time_in_Seconds * 1000
