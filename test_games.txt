@@ -1,0 +1,41 @@
+[Site "PlayTak.com"]
+[Event "Online Play"]
+[Date "2016.09.19"]
+[Time "14:25:09"]
+[Player1 "fwwwwibib"]
+[Player2 "TakticianBot"]
+[Clock "20:0 +30"]
+[Result "0-R"]
+[Size "5"]
+
+1. a1 e1
+2. d2 a2
+3. d3 a3
+4. Sb2 b3
+5. d4 Cc3
+6. e2 1c3>1
+7. Cc3 c4
+8. b4 a4
+9. a5 c5
+10. 1c3+1 e3
+11. c3 c2
+12. 1d2<1 2d3<2
+13. d3 b5
+14. 1b2<1 d2
+15. 2c2>2 3c3>3
+16. c3 c2
+17. 3d2<3 4d3<4
+18. d3 d2
+19. 4c2>4 5c3>5
+20. c3 c2
+21. 2a2+2 1a4>1
+22. b2 a2
+23. 2c4<2 1b3>1
+24. c4 e4
+25. e5 d5
+26. a4 1d5>1
+27. 1d4>1 1e3+1
+28. Se3 c1
+29. 1e3+1 1d3-1
+30. 2e4<2 5d2>5
+31. 4d3-13 4e2<112

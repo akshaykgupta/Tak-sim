@@ -71,12 +71,12 @@ class Server:
 			data = json.loads(data)
 
 		if(client_id < len(self.communicator_list)):			
-			success_flag = self.communicator_list[client_id].SendDataOnSocket(json.dumps(data))
+			success_flag = self.communicator_list[client_id].SendDataOnSocket(json.dumps(data))			
 			if(not success_flag):
 				print 'ERROR : COULD NOT SEND DATA TO CLIENT ' + str(client_id)
 				self.CloseClient(client_id)
 			elif((data['action'] == 'KILLPROC') or (data['action'] == 'FINISH')):
-				self.CloseClient(client_id)
+				self.CloseClient(client_id)			
 		return success_flag
 
 	def CloseClient(self,client_id):
@@ -105,17 +105,22 @@ if __name__ == '__main__':
 	print 'Start'
 	local_Server = Server()
 	local_Server.BuildServer(int(sys.argv[1]), 2)
-	local_Server.SendData2Client(0, 'Player 1')
-	local_Server.SendData2Client(1, 'Player 2')
+	data = {'meta':'', 'action':'INIT','data':'Player 1'}
+	local_Server.SendData2Client(0, json.dumps(data))
+	data['data'] = 'Player 2'
+	local_Server.SendData2Client(1, json.dumps(data))
+	
 	while(True):
 		data = local_Server.RecvDataFromClient(0)
 		local_Server.SendData2Client(1, data)
 		if not data:
 			break
+		print data, 'Received from client 0'
 		data = json.loads(data)
 		if data['action'] == 'FINISH' or data['action'] == 'KILLPROC':
-			break
+			break		
 		data = local_Server.RecvDataFromClient(1)
+		print data, 'Received from client 1'
 		local_Server.SendData2Client(0, data)
 		if not data:
 			break

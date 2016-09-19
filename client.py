@@ -1,5 +1,5 @@
 from Communicator import Communicator
-import socket,sys,json,os,time
+import socket,sys,json,os,time,pdb
 import math
 from Game import Game
 
@@ -93,7 +93,7 @@ class Client(Communicator):
 			data : a dictionary of the following format:
 			{
 				meta : The meta data in case of an error ( UNEXPECTED STOP, WRONG MOVE etc.), otherwise ''	
-				action : The action to be taken (KILLPROC, NORMAL, FINISH)
+				action : The action to be taken (KILLPROC, NORMAL, FINISH, INIT)
 				data : Move String or '' in case of an Error
 			}
 		Returns:			
@@ -102,7 +102,7 @@ class Client(Communicator):
 		if((data['action'] == 'KILLPROC') or (data['action'] == 'FINISH')):
 			super(Client,self).closeChildProcess()		
 		
-		sendDat = json.dumps(data)
+		sendData = json.dumps(data)
 		success_flag =  super(Client,self).SendDataOnSocket(sendData)
 		if(not success_flag):
 			print 'ERROR : FAILED TO SEND DATA TO SERVER'
@@ -124,6 +124,7 @@ class Client(Communicator):
 			retData : String (Move) in case there are no errors, otherwise None
 		"""		
 		data = super(Client,self).RecvDataOnSocket(self.NETWORK_TIMER)
+		print 'Received Data: ',data,'From Process'
 		retData = None
 		if(data == None):			
 			print 'ERROR : TIMEOUT ON SERVER END'
@@ -131,8 +132,8 @@ class Client(Communicator):
 			super(Client,self).closeSocket()
 		else:
 			data = json.loads(data)
-			if(data['action'] == 'NORMAL'):
-				retData = data['data']
+			if(data['action'] == 'NORMAL' or data['action'] == 'INIT'):
+				retData = data['data']			
 			elif(data['action'] == 'KILLPROC'):
 				print 'ERROR : ' + data['meta'] + ' ON OTHER CLIENT'
 				super(Client,self).closeChildProcess()
@@ -165,7 +166,8 @@ class Client(Communicator):
 					  None in case of an error
 		"""		
 		start_time = time.time()
-		BUFFER_TIMER = math.ceil(self.GAME_TIMER / 1000.0)
+		BUFFER_TIMER = int(math.ceil(self.GAME_TIMER / 1000.0))
+		print 'Buffer Time is: ',BUFFER_TIMER
 		data = super(Client,self).RecvDataOnPipe(BUFFER_TIMER)
 		end_time = time.time()
 		retData = None		
@@ -191,6 +193,8 @@ class Client(Communicator):
 		Returns:
 			success_flag : A boolean flag to denote the data transfer to the process was successful or not.
 		"""		
+		if(data[-1] != '\n'):
+			data = data + '\n'
 		success_flag = super(Client, self).SendDataOnPipe(data)		
 		if(success_flag == False):
 			print 'ERROR : FAILED TO SEND DATA TO PROCESS'
@@ -203,27 +207,31 @@ if __name__ == '__main__':
 	game = Game(5)
 	client.CreateChildProcess('python', 'player.py')
 	client.Connect2Server(sys.argv[1],int(sys.argv[2]))
-	player_id = client.RecvDataFromServer()	
-	client.SendData2Process(player_id)
+	player_id = client.RecvDataFromServer()			
+	print player_id,'Received from the server'
 	if(player_id is None):
 		# TODO : Show Appropreate Error message 
-		sys.exit(0)
-
+		sys.exit(0)	
+	client.SendData2Process(player_id)	
 	if player_id == 'Player 2':
 		move = client.RecvDataFromServer()
 		if move:
 			move = move.strip()
 			success = game.execute_move(move)			
+			game.Render()
 			client.SendData2Process(move)
 		else:
 			sys.exit(0)	
-	while(True):
-			move = client.RecvDataFromProcess()
+	while(True):			
+			move = client.RecvDataFromProcess()						
 			if move['action'] == 'KILLPROC':
 				client.SendData2Server(move)
 				break
 			move['data'] = move['data'].strip()
+			print 'Checking for move ', move['data']
 			success = game.execute_move(move['data'])
+			game.Render()
+			print success
 			message = {}
 			if success == 0:
 				message['data'] = ''
@@ -245,9 +253,11 @@ if __name__ == '__main__':
 			if move:
 				move = move.strip()
 				success = game.execute_move(move)
+				game.Render()
 				if(success == 2 or success == 3):
 					break
 				else:					
 					client.SendData2Process(move)
 			else:
 				break
+	client.closeChildProcess()

@@ -1,6 +1,7 @@
 import sys
 import pdb
-data = sys.stdin.readline()
+import time
+data = sys.stdin.readline().strip()
 moveFile = None
 player = -1
 allMoves = None
@@ -15,10 +16,13 @@ else:
 	allMoves = moveFile.readlines()
 if(player == 1):
 	idx = 0
-	while True:		
+	while True:
+		time.sleep(1)		
 		move = allMoves[idx].strip()
-		# Write move to client
-		sys.stdout.write(move + "\n")		
+		# Write move to client		
+		move = move + '\n'		
+		sys.stdout.write(move)
+		sys.stdout.flush()
 		# read move from client
 		move = sys.stdin.readline()
 		idx += 1
@@ -28,10 +32,12 @@ elif(player == 2):
 	idx = 0
 	while True:		
 		# read move from client
-		move = sys.stdin.readline()		
+		move = sys.stdin.readline()
+		time.sleep(1)
 		move = allMoves[idx].strip()
 		#Send move from client
 		sys.stdout.write(move + "\n")
+		sys.stdout.flush()
 		idx += 1
 		if(idx == len(allMoves)):
 			break
