@@ -132,7 +132,7 @@ class Client(Communicator):
 		else:
 			data = json.loads(data)
 			if(data['action'] == 'NORMAL'):
-				retData = data['data']
+				retData = data['data'].strip()
 			elif(data['action'] == 'KILLPROC'):
 				print 'ERROR : ' + data['meta'] + ' ON OTHER CLIENT'
 				super(Client,self).closeChildProcess()
@@ -140,7 +140,7 @@ class Client(Communicator):
 			elif(data['action'] == 'FINISH'):
 				super(Client,self).closeChildProcess()				
 				super(Client,self).closeSocket()
-				retData = data['data']
+				retData = data['data'].strip()
 		return retData
 	
 	def RecvDataFromProcess(self):
@@ -178,7 +178,7 @@ class Client(Communicator):
 			time_delta = max(1,int((end_time - start_time) * 1000))
 			self.GAME_TIMER -= time_delta
 			if(self.GAME_TIMER > 0):
-				retData = {'meta':'','action':'NORMAL','data':data}
+				retData = {'meta':'','action':'NORMAL','data':data.strip()}
 			else:
 				retData = {'meta':'TIMEOUT','action':'KILLPROC','data':''}				
 		return retData
@@ -201,10 +201,14 @@ class Client(Communicator):
 if __name__ == '__main__':
 	client = Client()
 	game = Game(5)
-	client.CreateChildProcess('python', 'run.py')
+	client.CreateChildProcess('python', 'player.py')
 	client.Connect2Server(sys.argv[1],int(sys.argv[2]))
-	player_id = client.RecvDataFromServer()
+	player_id = client.RecvDataFromServer()	
 	client.SendData2Process(player_id)
+	if(player_id is None):
+		# TODO : Show Appropreate Error message 
+		sys.exit(0)
+		
 	if player_id == 'Player 2':
 		move = client.RecvDataFromServer()
 		if move:
