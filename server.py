@@ -104,25 +104,23 @@ class Server:
 		self.communicator_list = []
 
 if __name__ == '__main__':
-	print 'Start'
+	print 'Waiting for clients to connect...'
 	local_Server = Server()
 	local_Server.BuildServer(int(sys.argv[1]), 2)
 	data = {'meta':'', 'action':'INIT','data':'1 5 120'}
 	local_Server.SendData2Client(0, json.dumps(data))
 	data['data'] = '2 5 120'
 	local_Server.SendData2Client(1, json.dumps(data))
-	
+	print 'Beginning game...'
 	while(True):
 		data = local_Server.RecvDataFromClient(0)
 		local_Server.SendData2Client(1, data)
 		if not data:
 			break
-		print data, 'Received from client 0'
 		data = json.loads(data)
 		if data['action'] == 'FINISH' or data['action'] == 'KILLPROC':
 			break		
 		data = local_Server.RecvDataFromClient(1)
-		print data, 'Received from client 1'
 		local_Server.SendData2Client(0, data)
 		if not data:
 			break

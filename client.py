@@ -124,7 +124,6 @@ class Client(Communicator):
 			retData : String (Move) in case there are no errors, otherwise None
 		"""		
 		data = super(Client,self).RecvDataOnSocket(self.NETWORK_TIMER)
-		print 'Received Data: ',data,'From Process'
 		retData = None
 		if(data == None):			
 			print 'ERROR : TIMEOUT ON SERVER END'
@@ -217,14 +216,13 @@ if __name__ == '__main__':
 	game_timer = int(server_string_list[2])
 	game = Game(board_size)
 	client.setGameTimer(game_timer)
-	print player_id,'Received from the server'
+	print 'You are player ', player_id
 	client.SendData2Process(server_string)
 	if player_id == '2':
 		move = client.RecvDataFromServer()
 		if move:
 			move = move.strip()
 			success = game.execute_move(move)			
-			game.Render()
 			client.SendData2Process(move)
 		else:
 			sys.exit(0)	
@@ -236,8 +234,6 @@ if __name__ == '__main__':
 			move['data'] = move['data'].strip()
 			print 'Checking for move ', move['data']
 			success = game.execute_move(move['data'])
-			game.Render()
-			print success
 			message = {}
 			if success == 0:
 				message['data'] = ''
@@ -268,7 +264,6 @@ if __name__ == '__main__':
 			if move:
 				move = move.strip()
 				success = game.execute_move(move)
-				game.Render()
 				if(success == 2 or success == 3):
 					if success == 2:						
 						if(player_id == '1'):
