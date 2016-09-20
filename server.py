@@ -1,10 +1,10 @@
-import socket,sys,json
+import socket,sys,json,signal,pdb
 from Communicator import Communicator
 
 class Server:
 	def __init__(self):
 		"""	
-			Constructor. Initializes the communicator_list to [] and the NETWORK_TIMER to 60
+			Constructor. Initializes the communicator_list to [] and the NETWORK_TIMER to 60 and INITIALTIMER to 60
 		Args:
 			None
 		Returns:
@@ -12,7 +12,14 @@ class Server:
 		"""
 		self.communicator_list = []
 		self.NETWORK_TIMER = 60
+		self.INITIALTIMER = 10
 
+	def InitialTimeOutHandler(self,num_clients):		
+		def _handle(signal,frame):
+			print 'TIMEOUT. ONLY ',self.client_count,' OF ',num_clients,'JOINED'	
+			self.CLOSE_NETWORK = True		
+		return _handle
+	
 	def BuildServer(self,port_no,num_clients):
 		"""Builds The server on the port_number port_no for num_clients
 		Args:
@@ -26,13 +33,19 @@ class Server:
 		self.port = port_no		
 		s.bind((host,port_no))
 		s.listen(5)
-		client_count = 0
-		# TODO : Handle TIMEOUT using signal
-		while client_count < num_clients:			
-			c,addr = s.accept()
-			client_count += 1
-			self.communicator_list.append(Communicator())
-			self.communicator_list[-1].setSocket(c)
+		self.client_count = 0
+		self.CLOSE_NETWORK = False				
+		signal.signal(signal.SIGALRM, self.InitialTimeOutHandler(num_clients))
+		signal.alarm(self.INITIALTIMER)
+		while self.client_count < num_clients and (not self.CLOSE_NETWORK):
+			try:			
+				c,addr = s.accept()
+			except:
+				self.CLOSE_NETWORK = True			
+			if(not self.CLOSE_NETWORK):
+				self.client_count += 1
+				self.communicator_list.append(Communicator())
+				self.communicator_list[-1].setSocket(c)
 		s.close()
 
 	
@@ -102,30 +115,64 @@ class Server:
 			if(not self.communicator_list[idx] is None):
 				self.CloseClient(idx)
 		self.communicator_list = []
+	
+	def SendInitError2Clients(self):	
+		"""
+			In case of an initialization error, sends messages to the clients, and exits
+		Args:
+			None
+		Returns: 
+			None
+		"""	
+		for idx in xrange(len(self.communicator_list)):
+			if(not self.communicator_list[idx] is None):
+				data = {'meta':'ERROR IN INITIALIZATION', 'action':'KILLPROC','data':''}
+				self.SendData2Client(idx,json.dumps(data))
+				self.CloseClient(idx)
+
+	def playTak(self,client_0,client_1):
+		"""
+			"Tak is the best sort of game: simple in its rules, complex in its strategy" - Kvothe
+			Starts a game of Tak between client_0 (as Player_1) and client_1 (as Player_2)
+		Args:
+			client_0: (int) idx of Player 1
+			client_1: (int) idx of Player 2
+		Returns:
+			None
+		"""
+		if( (client_0 < len(self.communicator_list)) and (client_1) < len(self.communicator_list)):
+			data = {'meta':'', 'action':'INIT','data':'1 5 120'}
+			self.SendData2Client(client_0, json.dumps(data))
+			data['data'] = '2 5 120'
+			self.SendData2Client(client_1, json.dumps(data))			
+			while(True):
+				data = self.RecvDataFromClient(client_0)
+				self.SendData2Client(client_1, data)
+				if not data:
+					break
+				print data, 'Received from client 0'
+				data = json.loads(data)
+				if data['action'] == 'FINISH' or data['action'] == 'KILLPROC':
+					break		
+				data = self.RecvDataFromClient(client_1)
+				print data, 'Received from client 1'
+				self.SendData2Client(client_0, data)
+				if not data:
+					break
+				data = json.loads(data)
+				if data['action'] == 'FINISH' or data['action'] == 'KILLPROC':
+					break
+			self.CloseClient(client_0)
+			self.CloseClient(client_1)
+		else:
+			# Close all clients
+			self.CloseAllClients()
 
 if __name__ == '__main__':
 	print 'Start'
 	local_Server = Server()
-	local_Server.BuildServer(int(sys.argv[1]), 2)
-	data = {'meta':'', 'action':'INIT','data':'1 5 120'}
-	local_Server.SendData2Client(0, json.dumps(data))
-	data['data'] = '2 5 120'
-	local_Server.SendData2Client(1, json.dumps(data))
-	
-	while(True):
-		data = local_Server.RecvDataFromClient(0)
-		local_Server.SendData2Client(1, data)
-		if not data:
-			break
-		print data, 'Received from client 0'
-		data = json.loads(data)
-		if data['action'] == 'FINISH' or data['action'] == 'KILLPROC':
-			break		
-		data = local_Server.RecvDataFromClient(1)
-		print data, 'Received from client 1'
-		local_Server.SendData2Client(0, data)
-		if not data:
-			break
-		data = json.loads(data)
-		if data['action'] == 'FINISH' or data['action'] == 'KILLPROC':
-			break
+	local_Server.BuildServer(int(sys.argv[1]), 4)
+	if(local_Server.client_count % 2 != 0):
+		local_Server.SendInitError2Clients()
+	else:
+		local_Server.playTak(0,1)	

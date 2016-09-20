@@ -17,7 +17,7 @@ else:
 if(player == 1):
 	idx = 0
 	while True:
-		time.sleep(1)		
+		# time.sleep(1)		
 		move = allMoves[idx].strip()
 		# Write move to client		
 		move = move + '\n'		
@@ -33,7 +33,7 @@ elif(player == 2):
 	while True:		
 		# read move from client
 		move = sys.stdin.readline()
-		time.sleep(1)
+		# time.sleep(1)
 		move = allMoves[idx].strip()
 		#Send move from client
 		sys.stdout.write(move + "\n")
