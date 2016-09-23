@@ -17,7 +17,9 @@ class Board(object):
 	SIDE_LABEL_Y = 465
 	FONT_SIZE = 20
 
-	def __init__(self, n):		
+	def __init__(self, game):
+		self.game = game
+		n = game.n
 		self.n = n
 		self.display = Tk()
 		Board.SIDE_LABEL_Y = n * Board.SQUARE_SIZE + 65
@@ -31,14 +33,16 @@ class Board(object):
 		self.display.mainloop()
 	
 	def background_loop(self):
-		self.draw_squares()
-		self.draw_board_labels()
-		board_list = [[] for idx in xrange(self.n*self.n)]
-		board_list[7] = [(1,'F'), (0, 'F'), (0, 'F'), (1, 'F'), (1,'S')]
-		player_list = [Game.Player(13, 1), Game.Player(10, 0)]
-		self.draw_tiles_remaining(player_list)
-		self.draw_tiles(board_list)
-		self.draw_turn(0)
+		while(self.refresh_board):
+			self.draw_squares()
+			self.draw_board_labels()
+			# board_list = [[] for idx in xrange(self.n*self.n)]
+			# board_list[7] = [(1,'F'), (0, 'F'), (0, 'F'), (1, 'F'), (1,'S')]
+			# player_list = [Game.Player(13, 1), Game.Player(10, 0)]
+			self.draw_tiles_remaining(self.game.players)
+			self.draw_tiles(self.game.board)
+			self.draw_turn(self.game.turn)
+			self.refresh_board = False
 
 	def draw_board_labels(self):
 		x = Board.BOTTOM_LABEL_X
