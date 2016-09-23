@@ -8,7 +8,11 @@ class Game:
 	SQUARE_SIZE = 80
 	VER_SHIFT_MARGIN = 50
 	HOR_SHIFT_MARGIN = 150
-
+	COLOR_2 = '\033[91m'
+	COLOR_1 = '\033[93m'
+	COLOR_RC = '\033[96m'
+	COLOR_END = '\033[0m'
+	CELL_WIDTH = 15
 
 	class Player:
 
@@ -16,7 +20,7 @@ class Game:
 			self.flats = flats
 			self.capstones = capstones
 
-	def __init__(self, n):
+	def __init__(self, n, mode):
 		self.n = n
 		self.moves = 0
 		self.total_squares = n * n
@@ -43,23 +47,51 @@ class Game:
 		self.max_up = n
 		self.max_left = 'a'
 		self.max_right = chr(ord('a') + n - 1)
-		self.winner = {}		
-		
+		self.winner = {}
+		self.mode = mode
 	
 	def __str__(self):
 		'''Returns a string representation of the current
 		state of the game
 		'''
+
 		game_string = ''
-		game_string += 'Current turn: ' + str(self.turn) + '\n'
-		game_string += 'Player 0 unplayed pieces: ' + str(self.players[0].flats) + \
+		game_string += 'Current turn: Player ' + str(self.turn + 1) + '\n'
+		game_string += 'Player 1 unplayed pieces: ' + str(self.players[0].flats) + \
 					   'F, ' + str(self.players[0].capstones) + 'C\n'
-		game_string += 'Player 1 unplayed pieces: ' + str(self.players[1].flats) + \
-					   'F, ' + str(self.players[1].capstones) + 'C\n'
+		game_string += 'Player 2 unplayed pieces: ' + str(self.players[1].flats) + \
+					   'F, ' + str(self.players[1].capstones) + 'C\n\n'
 		for i in xrange(self.n-1, -1, -1):
-			game_string += str(self.board[i*self.n:(i+1)*self.n])
+			game_string += Game.COLOR_RC + str(i+1) + Game.COLOR_END + '  '
+			for j in xrange(self.n):
+				idx = i * self.n + j
+				if len(self.board[idx]) == 0:
+					for ii in xrange(Game.CELL_WIDTH):
+						game_string += ' '
+				else:
+					spaces = (Game.CELL_WIDTH - len(self.board[idx])) / 2
+					game_string += ' ' * spaces
+					game_string += self.square_to_string(self.board[idx])
+					spaces = (Game.CELL_WIDTH - len(self.board[idx]) + 1) / 2
+					game_string += ' ' * spaces
 			game_string += '\n'
+		game_string += '   '
+		for i in xrange(self.n):
+			game_string += ' ' * (Game.CELL_WIDTH/2)
+			game_string += Game.COLOR_RC + chr(i+97) + Game.COLOR_END
+			game_string += ' ' * (Game.CELL_WIDTH/2)
 		return game_string
+
+	def square_to_string(self, square):
+		square_string = ''
+		for i in range(len(square)):
+			if square[i][0] == 0:
+				square_string += Game.COLOR_1
+			else:
+				square_string += Game.COLOR_2
+			square_string += square[i][1]
+			square_string += Game.COLOR_END
+		return square_string
 
 	def init_display(self):
 		self.display = Tk()
@@ -70,9 +102,8 @@ class Game:
 		self.render_board = Board(self.n, self.canvas, self.window_height, self.window_width)
 
 	def render(self):
-		print 'PRINTING THE GAME ....'	
 		print self.__str__()
-		print '\n\n\n'
+		print '\n\n'
 
 	def execute_move(self,move_string):
 		'''Returns
@@ -81,7 +112,6 @@ class Game:
 		2 if player 1 wins
 		3 if player 2 wins
 		'''
-		print 'Got from game', move_string
 		move_string = move_string.strip()
 		# pdb.set_trace()
 		if self.turn == 0:
@@ -174,21 +204,26 @@ class Game:
 			self.board[square] = self.board[square][:-count]
 		else:
 			return 0
+		winner = -1
 		if self.check_road_win(self.turn):
 			self.winner['player'] = self.turn
 			self.winner['type'] = 'road'
-			return 2 + self.turn
-		if self.check_road_win(1 - self.turn):
+			winner = 2 + self.turn
+		elif self.check_road_win(1 - self.turn):
 			self.winner['player'] = 1 - self.turn
 			self.winner['type'] = 'road'
-			return 3 - self.turn
-		if self.players[0].flats == 0 or self.players[1].flats == 0:
+			winner = 3 - self.turn
+		elif self.players[0].flats == 0 or self.players[1].flats == 0:
 			winner = self.check_flat_win()
 			self.winner['player'] = winner - 2
 			self.winner['type'] = 'flat'
-			return winner
 		self.turn = 1 - self.turn
-		self.render_board.render(self)
+		if self.mode == 'GUI':
+			self.render_board.render(self)
+		elif self.mode == 'CUI':
+			self.render()
+		if winner != -1:
+			return winner
 		return 1
 
 	def square_to_num(self,square_string):

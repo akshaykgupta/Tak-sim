@@ -3,6 +3,7 @@ import socket,sys,json,os,time,pdb
 import math
 from Game import Game
 from Board import Board
+import argparse
 
 class Client(Communicator):
 	def __init__(self):
@@ -125,7 +126,6 @@ class Client(Communicator):
 			retData : String (Move) in case there are no errors, otherwise None
 		"""		
 		data = super(Client,self).RecvDataOnSocket(self.NETWORK_TIMER)
-		print 'Received Data: ',data,'From Process'
 		retData = None
 		if(data == None):			
 			print 'ERROR : TIMEOUT ON SERVER END'
@@ -168,7 +168,7 @@ class Client(Communicator):
 		"""		
 		start_time = time.time()
 		BUFFER_TIMER = int(math.ceil(self.GAME_TIMER / 1000.0))
-		print 'Buffer Time is: ',BUFFER_TIMER
+		print 'Time remaining is: ' + str(BUFFER_TIMER) + 's'
 		data = super(Client,self).RecvDataOnPipe(BUFFER_TIMER)
 		end_time = time.time()
 		retData = None		
@@ -202,10 +202,15 @@ class Client(Communicator):
 			super(Client,self).closeChildProcess()					
 		return success_flag
 
-def temp_loop(game):
+def game_loop(game, args):
 	client = Client()
-	client.CreateChildProcess('python', 'player.py')
-	client.Connect2Server(sys.argv[1],int(sys.argv[2]))
+	if args.exe.endswith('.py'):
+		client.CreateChildProcess('python', args.exe)
+	elif args.exe.endswith('.sh'):
+		client.CreateChildProcess('sh', args.exe)
+	else:
+		client.CreateChildProcess('sh', args.exe)
+	client.Connect2Server(args.ip, args.port)
 	server_string = client.RecvDataFromServer()
 	if(server_string is None):
 		print 'ERROR IN SETTING UP CONNECTIONS. SORRY'
@@ -215,16 +220,19 @@ def temp_loop(game):
 	board_size = int(server_string_list[1])
 	game_timer = int(server_string_list[2])
 	client.setGameTimer(game_timer)
-	print 'Game Timer',game_timer
-	print player_id,'Received from the server'
+	print 'You are player ' + str(player_id)
+	print 'You are alloted a time of ' + str(game_timer) + 's\n'
 	client.SendData2Process(server_string)
-	game.render_board.render(game)
+	if args.mode == 'GUI':
+		game.render_board.render(game)
+	elif args.mode == 'CUI':
+		game.render()
 	if player_id == '2':
 		move = client.RecvDataFromServer()
 		if move:
 			move = move.strip()
+			print "The other player played " + move
 			success = game.execute_move(move)			
-			game.render()
 			client.SendData2Process(move)
 		else:
 			sys.exit(0)	
@@ -234,10 +242,8 @@ def temp_loop(game):
 			client.SendData2Server(move)
 			break
 		move['data'] = move['data'].strip()
-		print 'Checking for move ', move['data']
+		print "You played " + move['data']
 		success = game.execute_move(move['data'])
-		game.render()
-		print success
 		message = {}
 		if success == 0:
 			message['data'] = ''
@@ -250,15 +256,15 @@ def temp_loop(game):
 			if success == 2:
 				message['meta'] = '1 wins'
 				if(player_id == '1'):
-					print 'YOU WIN'
+					print 'YOU WIN!'
 				else:
-					print 'YOU LOSE'
+					print 'YOU LOSE :('
 			else:
 				message['meta'] = '2 wins'
 				if(player_id == '2'):
-					print 'YOU WIN'
+					print 'YOU WIN!'
 				else:
-					print 'YOU LOSE'
+					print 'YOU LOSE :('
 		elif success == 1:
 			message = move
 		client.SendData2Server(message)
@@ -267,19 +273,19 @@ def temp_loop(game):
 		move = client.RecvDataFromServer()
 		if move:
 			move = move.strip()
+			print "The other player played " + move
 			success = game.execute_move(move)
-			game.render()
 			if(success == 2 or success == 3):
 				if success == 2:						
 					if(player_id == '1'):
-						print 'YOU WIN'
+						print 'YOU WIN!'
 					else:
-						print 'YOU LOSE'
+						print 'YOU LOSE :('
 				else:						
 					if(player_id == '2'):
-						print 'YOU WIN'
+						print 'YOU WIN!'
 					else:
-						print 'YOU LOSE'
+						print 'YOU LOSE :('
 				break
 			else:					
 				client.SendData2Process(move)
@@ -289,77 +295,19 @@ def temp_loop(game):
 	client.closeSocket()
 
 if __name__ == '__main__':
-	game = Game(5)
-	from threading import Thread
-	Th = Thread(target = lambda : temp_loop(game))
-	Th.start()
-	game.init_display()
-	game.display.mainloop()
-	# client.SendData2Process(server_string)
-	# if player_id == '2':
-	# 	move = client.RecvDataFromServer()
-	# 	if move:
-	# 		move = move.strip()
-	# 		success = game.execute_move(move)			
-	# 		game.render()
-	# 		client.SendData2Process(move)
-	# 	else:
-	# 		sys.exit(0)	
-	# while(True):			
-	# 	move = client.RecvDataFromProcess()						
-	# 	if move['action'] == 'KILLPROC':
-	# 		client.SendData2Server(move)
-	# 		break
-	# 	move['data'] = move['data'].strip()
-	# 	print 'Checking for move ', move['data']
-	# 	success = game.execute_move(move['data'])
-	# 	game.render()
-	# 	print success
-	# 	message = {}
-	# 	if success == 0:
-	# 		message['data'] = ''
-	# 		message['action'] = 'KILLPROC'
-	# 		message['meta'] = 'INVALID MOVE'
-	# 		print 'INVALID MOVE ON THIS CLIENT'
-	# 	elif success == 2 or success == 3:
-	# 		message['action'] = 'FINISH'
-	# 		message['data'] = move['data']
-	# 		if success == 2:
-	# 			message['meta'] = '1 wins'
-	# 			if(player_id == '1'):
-	# 				print 'YOU WIN'
-	# 			else:
-	# 				print 'YOU LOSE'
-	# 		else:
-	# 			message['meta'] = '2 wins'
-	# 			if(player_id == '2'):
-	# 				print 'YOU WIN'
-	# 			else:
-	# 				print 'YOU LOSE'
-	# 	elif success == 1:
-	# 		message = move
-	# 	client.SendData2Server(message)
-	# 	if message['action'] == 'FINISH' or message['action'] == 'KILLPROC':
-	# 		break
-	# 	move = client.RecvDataFromServer()
-	# 	if move:
-	# 		move = move.strip()
-	# 		success = game.execute_move(move)
-	# 		game.render()
-	# 		if(success == 2 or success == 3):
-	# 			if success == 2:						
-	# 				if(player_id == '1'):
-	# 					print 'YOU WIN'
-	# 				else:
-	# 					print 'YOU LOSE'
-	# 			else:						
-	# 				if(player_id == '2'):
-	# 					print 'YOU WIN'
-	# 				else:
-	# 					print 'YOU LOSE'
-	# 			break
-	# 		else:					
-	# 			client.SendData2Process(move)
-	# 	else:
-	# 		break
-	# client.closeChildProcess()
+	parser = argparse.ArgumentParser(description = 'Tak client')
+	parser.add_argument('ip', metavar = '0.0.0.0', type = str, help = 'Server IP')
+	parser.add_argument('port', metavar = '10000', type = int, help = 'Server port')
+	parser.add_argument('exe', metavar = 'run.sh', type = str, help = 'Your executable')
+	parser.add_argument('-n', dest = 'n', metavar = 'N', type = int, default = 5, help = 'Tak board size')
+	parser.add_argument('-mode', dest = 'mode', type = str, default = 'GUI', help = 'How to render')
+	args = parser.parse_args()
+	game = Game(args.n, args.mode)
+	if args.mode != 'GUI':
+		game_loop(game, args)
+	else:
+		from threading import Thread
+		Th = Thread(target = lambda : game_loop(game, args))
+		Th.start()
+		game.init_display()
+		game.display.mainloop()
