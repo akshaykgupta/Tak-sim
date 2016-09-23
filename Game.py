@@ -328,17 +328,22 @@ class Game:
 		'''
 		if 'player' not in self.winner:
 			raise ValueError('Nobody has won yet.')
-		if player != self.winner['player']:
-			return 0
+		count_1 = 0
+		count_2 = 0
+		for i in xrange(total_squares):
+			if len(self.board[i]) > 0 and self.board[i][-1][0] == 0 and self.board[i][-1][1] != 'S':
+				count_1 += 1
+			elif len(self.board[i]) > 0 and self.board[i][-1][0] == 1 and self.board[i][-1][1] != 'S':
+				count_2 += 1
+		if player != self.winner['player'] and player == 0:
+			return count_1
+		elif player != self.winner['player'] and player == 1:
+			return count_2
 		if self.winner['type'] == 'road':
 			return self.players[player].flats + self.total_squares
 		elif self.winner['type'] == 'flat':
-			count_1 = 0
-			count_2 = 0
-			for i in xrange(total_squares):
-				if len(self.board[i]) > 0 and self.board[i][-1][0] == 0 and self.board[i][-1][1] != 'S':
-					count_1 += 1
-				elif len(self.board[i]) > 0 and self.board[i][-1][0] == 1 and self.board[i][-1][1] != 'S':
-					count_2 += 1
-			return self.players[player].flats + abs(count_1 - count_2)
+			if player == 0:
+				return self.players[player].flats + count_1
+			elif player == 1:
+				return self.players[player].flats + count_2
 
