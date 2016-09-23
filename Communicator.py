@@ -8,7 +8,7 @@ class Communicator(object):
 		self.ChildProcess = None		
 
 	def setSocket(self,Socket):
-		self.Socket = Socket
+		self.Socket = Socket		
 
 	def NetworkTimeoutHandler(self):
 		def _handle(signal,frame):
@@ -49,18 +49,17 @@ class Communicator(object):
 
 	def RecvDataOnSocket(self,TIMEOUT):
 		data = None
-		if(self.isSocketNotNone()):
-			signal.signal(signal.SIGALRM, self.NetworkTimeoutHandler())
-			signal.alarm(TIMEOUT)
+		if(self.isSocketNotNone()):			
 			while True:
 				try:			
 					data = self.Socket.recv(1024)
 				except:
 					data = None
 					break
-				if(len(data) > 0):
-					break				
-			signal.alarm(0)
+				if(data is None):
+					break
+				elif(len(data) > 0):
+					break
 		return data
 		
 

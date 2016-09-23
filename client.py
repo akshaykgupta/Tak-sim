@@ -2,6 +2,7 @@ from Communicator import Communicator
 import socket,sys,json,os,time,pdb
 import math
 from Game import Game
+from Board import Board
 
 class Client(Communicator):
 	def __init__(self):
@@ -201,25 +202,23 @@ class Client(Communicator):
 			super(Client,self).closeChildProcess()					
 		return success_flag
 
-
-if __name__ == '__main__':
+def temp_loop(game):
 	client = Client()
-	
 	client.CreateChildProcess('python', 'player.py')
 	client.Connect2Server(sys.argv[1],int(sys.argv[2]))
-	server_string = client.RecvDataFromServer()			
+	server_string = client.RecvDataFromServer()
 	if(server_string is None):
 		print 'ERROR IN SETTING UP CONNECTIONS. SORRY'
-		sys.exit(0)	
+		sys.exit(0)
 	server_string_list = server_string.strip().split()
 	player_id = server_string_list[0]
 	board_size = int(server_string_list[1])
 	game_timer = int(server_string_list[2])
-	game = Game(board_size)
 	client.setGameTimer(game_timer)
 	print 'Game Timer',game_timer
 	print player_id,'Received from the server'
 	client.SendData2Process(server_string)
+	game.render_board.render(game)
 	if player_id == '2':
 		move = client.RecvDataFromServer()
 		if move:
@@ -230,60 +229,137 @@ if __name__ == '__main__':
 		else:
 			sys.exit(0)	
 	while(True):			
-			move = client.RecvDataFromProcess()						
-			if move['action'] == 'KILLPROC':
-				client.SendData2Server(move)
-				break
-			move['data'] = move['data'].strip()
-			print 'Checking for move ', move['data']
-			success = game.execute_move(move['data'])
+		move = client.RecvDataFromProcess()						
+		if move['action'] == 'KILLPROC':
+			client.SendData2Server(move)
+			break
+		move['data'] = move['data'].strip()
+		print 'Checking for move ', move['data']
+		success = game.execute_move(move['data'])
+		game.render()
+		print success
+		message = {}
+		if success == 0:
+			message['data'] = ''
+			message['action'] = 'KILLPROC'
+			message['meta'] = 'INVALID MOVE'
+			print 'INVALID MOVE ON THIS CLIENT'
+		elif success == 2 or success == 3:
+			message['action'] = 'FINISH'
+			message['data'] = move['data']
+			if success == 2:
+				message['meta'] = '1 wins'
+				if(player_id == '1'):
+					print 'YOU WIN'
+				else:
+					print 'YOU LOSE'
+			else:
+				message['meta'] = '2 wins'
+				if(player_id == '2'):
+					print 'YOU WIN'
+				else:
+					print 'YOU LOSE'
+		elif success == 1:
+			message = move
+		client.SendData2Server(message)
+		if message['action'] == 'FINISH' or message['action'] == 'KILLPROC':
+			break
+		move = client.RecvDataFromServer()
+		if move:
+			move = move.strip()
+			success = game.execute_move(move)
 			game.render()
-			print success
-			message = {}
-			if success == 0:
-				message['data'] = ''
-				message['action'] = 'KILLPROC'
-				message['meta'] = 'INVALID MOVE'
-				print 'INVALID MOVE ON THIS CLIENT'
-			elif success == 2 or success == 3:
-				message['action'] = 'FINISH'
-				message['data'] = move['data']
-				if success == 2:
-					message['meta'] = '1 wins'
+			if(success == 2 or success == 3):
+				if success == 2:						
 					if(player_id == '1'):
 						print 'YOU WIN'
 					else:
 						print 'YOU LOSE'
-				else:
-					message['meta'] = '2 wins'
+				else:						
 					if(player_id == '2'):
 						print 'YOU WIN'
 					else:
 						print 'YOU LOSE'
-			elif success == 1:
-				message = move
-			client.SendData2Server(message)
-			if message['action'] == 'FINISH' or message['action'] == 'KILLPROC':
 				break
-			move = client.RecvDataFromServer()
-			if move:
-				move = move.strip()
-				success = game.execute_move(move)
-				game.render()
-				if(success == 2 or success == 3):
-					if success == 2:						
-						if(player_id == '1'):
-							print 'YOU WIN'
-						else:
-							print 'YOU LOSE'
-					else:						
-						if(player_id == '2'):
-							print 'YOU WIN'
-						else:
-							print 'YOU LOSE'
-					break
-				else:					
-					client.SendData2Process(move)
-			else:
-				break
+			else:					
+				client.SendData2Process(move)
+		else:
+			break
 	client.closeChildProcess()
+	client.closeSocket()
+
+if __name__ == '__main__':
+	game = Game(5)
+	from threading import Thread
+	Th = Thread(target = lambda : temp_loop(game))
+	Th.start()
+	game.init_display()
+	game.display.mainloop()
+	# client.SendData2Process(server_string)
+	# if player_id == '2':
+	# 	move = client.RecvDataFromServer()
+	# 	if move:
+	# 		move = move.strip()
+	# 		success = game.execute_move(move)			
+	# 		game.render()
+	# 		client.SendData2Process(move)
+	# 	else:
+	# 		sys.exit(0)	
+	# while(True):			
+	# 	move = client.RecvDataFromProcess()						
+	# 	if move['action'] == 'KILLPROC':
+	# 		client.SendData2Server(move)
+	# 		break
+	# 	move['data'] = move['data'].strip()
+	# 	print 'Checking for move ', move['data']
+	# 	success = game.execute_move(move['data'])
+	# 	game.render()
+	# 	print success
+	# 	message = {}
+	# 	if success == 0:
+	# 		message['data'] = ''
+	# 		message['action'] = 'KILLPROC'
+	# 		message['meta'] = 'INVALID MOVE'
+	# 		print 'INVALID MOVE ON THIS CLIENT'
+	# 	elif success == 2 or success == 3:
+	# 		message['action'] = 'FINISH'
+	# 		message['data'] = move['data']
+	# 		if success == 2:
+	# 			message['meta'] = '1 wins'
+	# 			if(player_id == '1'):
+	# 				print 'YOU WIN'
+	# 			else:
+	# 				print 'YOU LOSE'
+	# 		else:
+	# 			message['meta'] = '2 wins'
+	# 			if(player_id == '2'):
+	# 				print 'YOU WIN'
+	# 			else:
+	# 				print 'YOU LOSE'
+	# 	elif success == 1:
+	# 		message = move
+	# 	client.SendData2Server(message)
+	# 	if message['action'] == 'FINISH' or message['action'] == 'KILLPROC':
+	# 		break
+	# 	move = client.RecvDataFromServer()
+	# 	if move:
+	# 		move = move.strip()
+	# 		success = game.execute_move(move)
+	# 		game.render()
+	# 		if(success == 2 or success == 3):
+	# 			if success == 2:						
+	# 				if(player_id == '1'):
+	# 					print 'YOU WIN'
+	# 				else:
+	# 					print 'YOU LOSE'
+	# 			else:						
+	# 				if(player_id == '2'):
+	# 					print 'YOU WIN'
+	# 				else:
+	# 					print 'YOU LOSE'
+	# 			break
+	# 		else:					
+	# 			client.SendData2Process(move)
+	# 	else:
+	# 		break
+	# client.closeChildProcess()

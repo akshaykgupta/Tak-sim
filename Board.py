@@ -16,19 +16,15 @@ class Board(object):
 	SIDE_LABEL_Y = 465
 	FONT_SIZE = 20
 
-	def __init__(self, n):
+	def __init__(self, n, canvas, window_height, window_width):
 		self.n = n
-		self.display = Tk()
 		Board.SIDE_LABEL_Y = n * Board.SQUARE_SIZE + 65
-		self.window_height = n * Board.SQUARE_SIZE + 2 * Board.VER_SHIFT_MARGIN
-		self.window_width = n * Board.SQUARE_SIZE + 2 * Board.HOR_SHIFT_MARGIN
-		self.canvas = Canvas(self.display, width = self.window_width, height = self.window_height)
-		self.canvas.pack()		
-		self.squares = [[ [] for i in xrange(n)] for ii in xrange(n)]		
-		Th = Thread(target = lambda : self.display.mainloop())
-		Th.start()
-	
+		self.canvas = canvas
+		self.window_height = window_height
+		self.window_width = window_width
+
 	def render(self, game):
+		self.canvas.delete("all")
 		self.draw_squares()
 		self.draw_board_labels()
 		# board_list = [[] for idx in xrange(self.n*self.n)]
@@ -64,7 +60,7 @@ class Board(object):
 					elif elem[1] == 'S':
 						self.draw_wall(elem, x_origin, y_origin - max(0, i-1)*5)
 					elif elem[1] == 'C':
-						self.draw_capstone(elem, x_origin + Board.FLAT_SIZE/2, y_origin + Board.FLAT_SIZE/2 + max(0, i-1)*5)
+						self.draw_capstone(elem, x_origin + Board.FLAT_SIZE/2, y_origin + Board.FLAT_SIZE/2 - max(0, i-1)*5)
 
 	def draw_flat(self, elem, x, y):		
 		fill = ["#FFFFFF", "#000000"]
@@ -85,7 +81,6 @@ class Board(object):
 				x = Board.HOR_SHIFT_MARGIN + (c * Board.SQUARE_SIZE )
 				y = Board.VER_SHIFT_MARGIN + (r * Board.SQUARE_SIZE)
 				sq = self.canvas.create_rectangle(x,y , x + Board.SQUARE_SIZE, y + Board.SQUARE_SIZE, fill = "#4cf3d2")
-				self.squares[r][c] = sq
 
 	def draw_tiles_remaining(self, player_list):
 		x_origin = Board.HOR_SHIFT_MARGIN / 2

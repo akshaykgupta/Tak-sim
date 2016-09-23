@@ -12,7 +12,7 @@ class Server:
 		"""
 		self.communicator_list = []
 		self.NETWORK_TIMER = 60
-		self.INITIALTIMER = 10
+		self.INITIALTIMER = 100
 
 	def InitialTimeOutHandler(self,num_clients):		
 		def _handle(signal,frame):

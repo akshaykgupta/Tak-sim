@@ -1,7 +1,14 @@
 import sys,pdb
 from Board import Board
+from Tkinter import *
 
 class Game:
+
+	# Constants
+	SQUARE_SIZE = 80
+	VER_SHIFT_MARGIN = 50
+	HOR_SHIFT_MARGIN = 150
+
 
 	class Player:
 
@@ -36,8 +43,8 @@ class Game:
 		self.max_up = n
 		self.max_left = 'a'
 		self.max_right = chr(ord('a') + n - 1)
-		self.winner = {}
-		self.render_board = Board(n)
+		self.winner = {}		
+		
 	
 	def __str__(self):
 		'''Returns a string representation of the current
@@ -53,6 +60,14 @@ class Game:
 			game_string += str(self.board[i*self.n:(i+1)*self.n])
 			game_string += '\n'
 		return game_string
+
+	def init_display(self):
+		self.display = Tk()
+		self.window_height = self.n * Board.SQUARE_SIZE + 2 * Board.VER_SHIFT_MARGIN
+		self.window_width = self.n * Board.SQUARE_SIZE + 2 * Board.HOR_SHIFT_MARGIN
+		self.canvas = Canvas(self.display, width = self.window_width, height = self.window_height)
+		self.canvas.pack()
+		self.render_board = Board(self.n, self.canvas, self.window_height, self.window_width)
 
 	def render(self):
 		print 'PRINTING THE GAME ....'	
