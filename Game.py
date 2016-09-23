@@ -37,7 +37,7 @@ class Game:
 		self.max_left = 'a'
 		self.max_right = chr(ord('a') + n - 1)
 		self.winner = {}
-		self.render_board = Board(self)
+		self.render_board = Board(n)
 	
 	def __str__(self):
 		'''Returns a string representation of the current
@@ -173,7 +173,7 @@ class Game:
 			self.winner['type'] = 'flat'
 			return winner
 		self.turn = 1 - self.turn
-		self.render_board.refresh_board = True
+		self.render_board.render(self)
 		return 1
 
 	def square_to_num(self,square_string):

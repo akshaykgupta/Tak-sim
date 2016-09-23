@@ -2,7 +2,6 @@ import sys, time, socket
 from Tkinter import *
 from threading import Thread
 import math
-from Game import Game
 
 class Board(object):
 	#CONSTANTS
@@ -17,9 +16,7 @@ class Board(object):
 	SIDE_LABEL_Y = 465
 	FONT_SIZE = 20
 
-	def __init__(self, game):
-		self.game = game
-		n = game.n
+	def __init__(self, n):
 		self.n = n
 		self.display = Tk()
 		Board.SIDE_LABEL_Y = n * Board.SQUARE_SIZE + 65
@@ -28,21 +25,18 @@ class Board(object):
 		self.canvas = Canvas(self.display, width = self.window_width, height = self.window_height)
 		self.canvas.pack()		
 		self.squares = [[ [] for i in xrange(n)] for ii in xrange(n)]		
-		Th = Thread(target = lambda : self.background_loop())
+		Th = Thread(target = lambda : self.display.mainloop())
 		Th.start()
-		self.display.mainloop()
 	
-	def background_loop(self):
-		while(self.refresh_board):
-			self.draw_squares()
-			self.draw_board_labels()
-			# board_list = [[] for idx in xrange(self.n*self.n)]
-			# board_list[7] = [(1,'F'), (0, 'F'), (0, 'F'), (1, 'F'), (1,'S')]
-			# player_list = [Game.Player(13, 1), Game.Player(10, 0)]
-			self.draw_tiles_remaining(self.game.players)
-			self.draw_tiles(self.game.board)
-			self.draw_turn(self.game.turn)
-			self.refresh_board = False
+	def render(self, game):
+		self.draw_squares()
+		self.draw_board_labels()
+		# board_list = [[] for idx in xrange(self.n*self.n)]
+		# board_list[7] = [(1,'F'), (0, 'F'), (0, 'F'), (1, 'F'), (1,'S')]
+		# player_list = [Game.Player(13, 1), Game.Player(10, 0)]
+		self.draw_tiles_remaining(game.players)
+		self.draw_tiles(game.board)
+		self.draw_turn(game.turn)
 
 	def draw_board_labels(self):
 		x = Board.BOTTOM_LABEL_X
