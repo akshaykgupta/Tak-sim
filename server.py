@@ -171,7 +171,7 @@ class Server:
 if __name__ == '__main__':
 	print 'Start'
 	local_Server = Server()
-	local_Server.BuildServer(int(sys.argv[1]), 4)
+	local_Server.BuildServer(int(sys.argv[1]), 2)
 	if(local_Server.client_count < 2):
 		local_Server.SendInitError2Clients()
 	else:
