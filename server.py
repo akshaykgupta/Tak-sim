@@ -1,5 +1,6 @@
 import socket,sys,json,signal,pdb
 from Communicator import Communicator
+import argparse
 
 class Server:
 	def __init__(self):
@@ -130,20 +131,23 @@ class Server:
 				self.SendData2Client(idx,json.dumps(data))
 				self.CloseClient(idx)
 
-	def playTak(self,client_0,client_1):
+	def playTak(self,n,timelimit,client_0,client_1):
 		"""
 			"Tak is the best sort of game: simple in its rules, complex in its strategy" - Kvothe
 			Starts a game of Tak between client_0 (as Player_1) and client_1 (as Player_2)
 		Args:
+			n: (int) board size
+			timelimit: time limit 
 			client_0: (int) idx of Player 1
 			client_1: (int) idx of Player 2
 		Returns:
 			None
 		"""
 		if( (client_0 < len(self.communicator_list)) and (client_1) < len(self.communicator_list)):
-			data = {'meta':'', 'action':'INIT','data':'1 5 120'}
+			dataString = '1 ' + str(n) + ' ' + str(timelimit)
+			data = {'meta':'', 'action':'INIT','data':dataString}
 			self.SendData2Client(client_0, json.dumps(data))
-			data['data'] = '2 5 120'
+			data['data'] = '2 ' + str(n) + ' ' + str(timelimit)
 			self.SendData2Client(client_1, json.dumps(data))			
 			while(True):
 				data = self.RecvDataFromClient(client_0)
@@ -171,8 +175,15 @@ class Server:
 if __name__ == '__main__':
 	print 'Start'
 	local_Server = Server()
-	local_Server.BuildServer(int(sys.argv[1]), 2)
+	parser = argparse.ArgumentParser(description = 'Tak Server')
+	parser.add_argument('port', metavar = '10000', type = int, help = 'Server port')
+	parser.add_argument('-n', dest = 'n', metavar = 'N', type = int, default = 5, help = 'Tak board size')
+	parser.add_argument('-NC', dest = 'num_clients', metavar = 'num_clients', type = int, default = 2, help = 'Number of clients connecting to the server')
+	parser.add_argument('-TL', dest = 'time_limit', metavar = 'time_limit', type = int, default = 120, help = 'Time limit (in s)')
+	args = parser.parse_args()
+	
+	local_Server.BuildServer(args.port, args.num_clients)
 	if(local_Server.client_count < 2):
 		local_Server.SendInitError2Clients()
 	else:
-		local_Server.playTak(0,1)	
+		local_Server.playTak(args.n,args.time_limit,0,1)	
