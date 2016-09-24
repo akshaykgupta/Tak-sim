@@ -174,7 +174,9 @@ if __name__ == '__main__':
 	parser.add_argument('-NC', dest = 'num_clients', metavar = 'num_clients', type = int, default = 2, help = 'Number of clients connecting to the server')
 	parser.add_argument('-TL', dest = 'time_limit', metavar = 'time_limit', type = int, default = 120, help = 'Time limit (in s)')
 	args = parser.parse_args()
-	
+	if args.n < 5 or args.n > 7:
+		print 'Game size should be 5x5, 6x6 or 7x7.'
+		sys.exit()
 	local_Server.BuildServer(args.port, args.num_clients)
 	if(local_Server.client_count < 2):
 		local_Server.SendInitError2Clients()

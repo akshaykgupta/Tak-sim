@@ -24,6 +24,7 @@ class Board(object):
 		self.window_width = window_width
 
 	def render(self, game):
+		time.sleep(0.05)
 		self.canvas.delete("all")
 		self.draw_squares()
 		self.draw_board_labels()
