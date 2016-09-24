@@ -12,7 +12,7 @@ class Server:
 			None
 		"""
 		self.communicator_list = []
-		self.NETWORK_TIMER = 5
+		self.NETWORK_TIMER = 100
 		self.INITIALTIMER = 100
 	
 	
