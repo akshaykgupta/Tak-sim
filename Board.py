@@ -38,11 +38,11 @@ class Board(object):
 		x = Board.BOTTOM_LABEL_X
 		for i in xrange(self.n):
 			y = Board.BOTTOM_LABEL_Y + i * Board.SQUARE_SIZE
-			l = self.canvas.create_text((x, y), text = str(self.n - i), font = ("Arial", self.FONT_SIZE), fill = "#e74c3c")
+			l = self.canvas.create_text((x, y), text = str(self.n - i), font = ("Arial", self.FONT_SIZE), fill = "#ecf0f1")
 		y = Board.SIDE_LABEL_Y
 		for i in xrange(self.n):
 			x = Board.SIDE_LABEL_X + i * Board.SQUARE_SIZE
-			l = self.canvas.create_text((x, y), text = chr(i + 97), font = ("Arial", self.FONT_SIZE), fill = "#e74c3c")
+			l = self.canvas.create_text((x, y), text = chr(i + 97), font = ("Arial", self.FONT_SIZE), fill = "#ecf0f1")
 
 	def draw_tiles(self, board_list):
 		for r in xrange(self.n):
@@ -63,43 +63,48 @@ class Board(object):
 						self.draw_capstone(elem, x_origin + Board.FLAT_SIZE/2, y_origin + Board.FLAT_SIZE/2 - max(0, i-1)*5)
 
 	def draw_flat(self, elem, x, y):		
-		fill = ["#FFFFFF", "#000000"]
-		self.canvas.create_rectangle(x, y, x + Board.FLAT_SIZE, y + Board.FLAT_SIZE, fill = fill[elem[0]], outline = "#e74c3c")
+		fill = ["#ecf0f1", "#34495e"]
+		self.canvas.create_rectangle(x, y, x + Board.FLAT_SIZE, y + Board.FLAT_SIZE, fill = fill[elem[0]], outline = "#000000")
 
 	def draw_capstone(self, elem, x, y):
-		fill = ["#FFFFFF", "#000000"]
+		fill = ["#ecf0f1", "#34495e"]
 		r = Board.CAP_RADIUS
-		self.canvas.create_oval(x - r, y - r, x + r, y + r, fill = fill[elem[0]], outline = "#e74c3c")
+		self.canvas.create_oval(x - r, y - r, x + r, y + r, fill = fill[elem[0]], outline = "#000000")
 
 	def draw_wall(self, elem, x, y):
-		fill = ["#FFFFFF", "#000000"]
-		self.canvas.create_polygon(x+7, y+2, x+28, y+23, x+23, y+28, x+2, y+7, fill = fill[elem[0]], outline = "#e74c3c")
+		fill = ["#ecf0f1", "#34495e"]
+		self.canvas.create_polygon(x+7, y+2, x+28, y+23, x+23, y+28, x+2, y+7, fill = fill[elem[0]], outline = "#000000")
 
 	def draw_squares(self):
 		for r in xrange(self.n):
 			for c in xrange(self.n):
 				x = Board.HOR_SHIFT_MARGIN + (c * Board.SQUARE_SIZE )
 				y = Board.VER_SHIFT_MARGIN + (r * Board.SQUARE_SIZE)
-				sq = self.canvas.create_rectangle(x,y , x + Board.SQUARE_SIZE, y + Board.SQUARE_SIZE, fill = "#4cf3d2")
+				idx = r * self.n + c
+				if r % 2 == c % 2:
+					fill = "#B2CCE5"
+				else:
+					fill = "#C2DDF6"
+				sq = self.canvas.create_rectangle(x,y , x + Board.SQUARE_SIZE, y + Board.SQUARE_SIZE, fill = fill, outline = fill)
 
 	def draw_tiles_remaining(self, player_list):
 		x_origin = Board.HOR_SHIFT_MARGIN / 2
 		y_origin = self.window_height / 2
-		self.canvas.create_rectangle(x_origin - 30, y_origin - 80, x_origin + 30, y_origin - 20, fill = "#FFFFFF", outline = "#000000")
-		self.canvas.create_text((x_origin, y_origin - 50), text = str(player_list[0].flats), font = ("Arial", self.FONT_SIZE), fill = "#e74c3c")
+		self.canvas.create_rectangle(x_origin - 30, y_origin - 80, x_origin + 30, y_origin - 20, fill = "#ecf0f1", outline = "#000000")
+		self.canvas.create_text((x_origin, y_origin - 50), text = str(player_list[0].flats), font = ("Arial", self.FONT_SIZE), fill = "#34495e")
 		x = x_origin
 		y = y_origin + 50
 		r = 30
-		self.canvas.create_oval(x - r, y - r, x + r, y + r, fill = "#FFFFFF", outline = "#000000")
-		self.canvas.create_text((x, y), text = str(player_list[0].capstones), font = ("Arial", self.FONT_SIZE), fill = "#e74c3c")
+		self.canvas.create_oval(x - r, y - r, x + r, y + r, fill = "#ecf0f1", outline = "#34495e")
+		self.canvas.create_text((x, y), text = str(player_list[0].capstones), font = ("Arial", self.FONT_SIZE), fill = "#34495e")
 		x_origin = self.window_width - Board.HOR_SHIFT_MARGIN / 2
 		y_origin = self.window_height / 2
-		self.canvas.create_rectangle(x_origin - 30, y_origin - 80, x_origin + 30, y_origin - 20, fill = "#000000", outline = "#FFFFFF")
-		self.canvas.create_text((x_origin, y_origin - 50), text = str(player_list[1].flats), font = ("Arial", self.FONT_SIZE), fill = "#e74c3c")
+		self.canvas.create_rectangle(x_origin - 30, y_origin - 80, x_origin + 30, y_origin - 20, fill = "#34495e", outline = "#ecf0f1")
+		self.canvas.create_text((x_origin, y_origin - 50), text = str(player_list[1].flats), font = ("Arial", self.FONT_SIZE), fill = "#ecf0f1")
 		x = x_origin
 		y = y_origin + 50
-		self.canvas.create_oval(x - r, y - r, x + r, y + r, fill = "#000000", outline = "#FFFFFF")
-		self.canvas.create_text((x, y), text = str(player_list[1].capstones), font = ("Arial", self.FONT_SIZE), fill = "#e74c3c")
+		self.canvas.create_oval(x - r, y - r, x + r, y + r, fill = "#34495e", outline = "#ecf0f1")
+		self.canvas.create_text((x, y), text = str(player_list[1].capstones), font = ("Arial", self.FONT_SIZE), fill = "#ecf0f1")
 
 	def draw_turn(self, turn):
 		if turn == 0:
@@ -109,7 +114,7 @@ class Board(object):
 			x = self.window_width - Board.HOR_SHIFT_MARGIN / 2
 			y = Board.VER_SHIFT_MARGIN + Board.SQUARE_SIZE / 2
 		r = 30
-		fill = ["#FFFFFF", "#000000"]
+		fill = ["#ecf0f1", "#34495e"]
 		self.canvas.create_oval(x - r, y - r, x + r, y + r, fill = fill[turn], outline = fill[1-turn])
 
 if __name__ == "__main__":

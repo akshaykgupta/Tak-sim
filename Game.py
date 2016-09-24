@@ -97,7 +97,7 @@ class Game:
 		self.display = Tk()
 		self.window_height = self.n * Board.SQUARE_SIZE + 2 * Board.VER_SHIFT_MARGIN
 		self.window_width = self.n * Board.SQUARE_SIZE + 2 * Board.HOR_SHIFT_MARGIN
-		self.canvas = Canvas(self.display, width = self.window_width, height = self.window_height)
+		self.canvas = Canvas(self.display, width = self.window_width, height = self.window_height, background = "#2c3e50")
 		self.canvas.pack()
 		self.render_board = Board(self.n, self.canvas, self.window_height, self.window_width)
 
