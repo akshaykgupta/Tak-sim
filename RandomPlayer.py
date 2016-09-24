@@ -177,6 +177,7 @@ class Game:
 			if len(self.board[i]) == 0:
 				if self.players[player].flats > 0:
 					all_moves.append('F' + self.all_squares[i])
+				if self.moves != player and self.players[player].flats > 0:
 					all_moves.append('S' + self.all_squares[i])
 				if self.moves != player and self.players[player].capstones > 0:
 					all_moves.append('C' + self.all_squares[i])
