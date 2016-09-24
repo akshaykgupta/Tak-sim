@@ -1,4 +1,4 @@
-import socket,sys,json,signal,pdb
+import socket,sys,json,pdb
 from Communicator import Communicator
 import argparse
 
@@ -12,14 +12,8 @@ class Server:
 			None
 		"""
 		self.communicator_list = []
-		self.NETWORK_TIMER = 60
-		self.INITIALTIMER = 100
-
-	def InitialTimeOutHandler(self,num_clients):		
-		def _handle(signal,frame):
-			print 'TIMEOUT. ONLY ',self.client_count,' OF ',num_clients,'JOINED'	
-			self.CLOSE_NETWORK = True		
-		return _handle
+		self.NETWORK_TIMER = 100
+		self.INITIALTIMER = 100	
 	
 	def BuildServer(self,port_no,num_clients):
 		"""Builds The server on the port_number port_no for num_clients
@@ -30,23 +24,22 @@ class Server:
 			None		
 		"""
 		s = socket.socket()
+		s.settimeout(self.NETWORK_TIMER)
 		host = socket.gethostname()
 		self.port = port_no		
 		s.bind((host,port_no))
 		s.listen(5)
 		self.client_count = 0
-		self.CLOSE_NETWORK = False				
-		signal.signal(signal.SIGALRM, self.InitialTimeOutHandler(num_clients))
-		signal.alarm(self.INITIALTIMER)
+		self.CLOSE_NETWORK = False						
 		while self.client_count < num_clients and (not self.CLOSE_NETWORK):
 			try:			
 				c,addr = s.accept()
-			except:
+			except:				
 				self.CLOSE_NETWORK = True			
 			if(not self.CLOSE_NETWORK):
 				self.client_count += 1
 				self.communicator_list.append(Communicator())
-				self.communicator_list[-1].setSocket(c)
+				self.communicator_list[-1].setSocket(c,self.NETWORK_TIMER)
 		s.close()
 
 	
@@ -65,7 +58,7 @@ class Server:
 		"""
 		data = None
 		if(client_id < len(self.communicator_list)):					
-			data = self.communicator_list[client_id].RecvDataOnSocket(self.NETWORK_TIMER)
+			data = self.communicator_list[client_id].RecvDataOnSocket()
 			if(data is None):
 				print 'ERROR : TIMEOUT ON CLIENT NETWORK' + str(client_id) + ' END'
 				self.CloseClient(client_id)
