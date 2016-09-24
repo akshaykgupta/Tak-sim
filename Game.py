@@ -309,7 +309,7 @@ class Game:
 
 		count_1 = 0
 		count_2 = 0
-		for i in xrange(total_squares):
+		for i in xrange(self.total_squares):
 			if len(self.board[i]) > 0 and self.board[i][-1][0] == 0 and self.board[i][-1][1] != 'S':
 				count_1 += 1
 			elif len(self.board[i]) > 0 and self.board[i][-1][0] == 1 and self.board[i][-1][1] != 'S':

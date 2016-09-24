@@ -113,7 +113,7 @@ class Game:
 		part_list = []
 		part_list.append([n])
 		for x in xrange(1, n):
-			for y in partition(n - x):
+			for y in self.partition(n - x):
 				part_list.append([x] + y)
 		return part_list
 
@@ -130,15 +130,15 @@ class Game:
 			change = 1
 		elif direction == '<':
 			change = -1
-		for i in len(partition):
+		for i in xrange(len(partition)):
 			next_square = square + change * (i + 1)
 			if len(self.board[next_square]) > 0 and self.board[next_square][-1][1] == 'C':
 				return False
-			if len(self.board[next_square]) > 0 and self.board[next_square][-1][1] == 'S' and i != len(partition):
+			if len(self.board[next_square]) > 0 and self.board[next_square][-1][1] == 'S' and i != len(partition) - 1:
 				return False
-			if i == partition and self.board[next_square][-1][1] == 'S' and partition[i] > 1:
+			if i == len(partition) - 1 and len(self.board[next_square]) > 0 and self.board[next_square][-1][1] == 'S' and partition[i] > 1:
 				return False
-			if i == partition and self.board[next_square][-1][1] == 'S' and self.board[square][-1][1] != 'C':
+			if i == len(partition) - 1 and len(self.board[next_square]) > 0 and self.board[next_square][-1][1] == 'S' and self.board[square][-1][1] != 'C':
 				return False
 		return True
 
@@ -158,13 +158,14 @@ class Game:
 		left = r
 		rem_squares = [up, down, left, right]
 		for num in xrange(min(size, self.n)):
-			part_list = self.partition(num)
+			part_list = self.partition(num + 1)
 			for di in range(4):
 				part_dir = [part for part in part_list if len(part) <= rem_squares[di]]
+				# sys.stderr.write(self.all_squares[square] + ' ' + dirs[di] + ' ' + str(part_dir) + '\n')
 				for part in part_dir:
 					if self.check_valid(square, dirs[di], part):
 						part_string = ''.join([str(i) for i in part])
-						all_moves.append(str(len(part)) + self.all_squares[square] + dirs[di] + part_string)
+						all_moves.append(str(sum(part)) + self.all_squares[square] + dirs[di] + part_string)
 		return all_moves
 
 	def generate_all_moves(self, player):
@@ -174,10 +175,11 @@ class Game:
 		all_moves = []
 		for i in xrange(len(self.board)):
 			if len(self.board[i]) == 0:
-				all_moves.append('F' + self.all_squares[i])
-				all_moves.append('S' + self.all_squares[i])
-				if self.moves != player:
-					all_moves.append('C' + all_squares[i])
+				if self.players[player].flats > 0:
+					all_moves.append('F' + self.all_squares[i])
+					all_moves.append('S' + self.all_squares[i])
+				if self.moves != player and self.players[player].capstones > 0:
+					all_moves.append('C' + self.all_squares[i])
 		for i in xrange(len(self.board)):
 			if len(self.board[i]) > 0 and self.board[i][-1][0] == player:
 				all_moves += self.generate_stack_moves(i)
