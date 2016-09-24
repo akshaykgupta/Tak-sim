@@ -84,7 +84,7 @@ class Client(Communicator):
 		"""				
 		self.clientSocket = socket.socket()
 		self.clientSocket.connect((server_address,port_no))		
-		super(Client,self).setSocket(self.clientSocket)
+		super(Client,self).setSocket(self.clientSocket,self.NETWORK_TIMER)
 		
 		
 
@@ -125,7 +125,7 @@ class Client(Communicator):
 		Returns:
 			retData : String (Move) in case there are no errors, otherwise None
 		"""		
-		data = super(Client,self).RecvDataOnSocket(self.NETWORK_TIMER)
+		data = super(Client,self).RecvDataOnSocket()
 		retData = None
 		if(data == None):			
 			print 'ERROR : TIMEOUT ON SERVER END'

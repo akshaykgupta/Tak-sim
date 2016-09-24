@@ -1,4 +1,4 @@
-import socket,sys,signal
+import socket,sys
 from subprocess import Popen, PIPE
 from nbstreamreader import NonBlockingStreamReader as NBSR
 
@@ -7,14 +7,10 @@ class Communicator(object):
 		self.Socket = None
 		self.ChildProcess = None		
 
-	def setSocket(self,Socket):
+	def setSocket(self,Socket,TIMEOUT=60):
 		self.Socket = Socket		
-
-	def NetworkTimeoutHandler(self):
-		def _handle(signal,frame):
-			self.closeSocket()
-		return _handle
-
+		self.Socket.settimeout(TIMEOUT)
+		
 
 	def isSocketNotNone(self):
 		if(self.Socket is None):
@@ -47,7 +43,7 @@ class Communicator(object):
 				pass
 		return success_flag
 
-	def RecvDataOnSocket(self,TIMEOUT):
+	def RecvDataOnSocket(self):
 		data = None
 		if(self.isSocketNotNone()):			
 			while True:
