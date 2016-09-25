@@ -1,6 +1,8 @@
 import socket,sys
 from subprocess import Popen, PIPE
 from nbstreamreader import NonBlockingStreamReader as NBSR
+from sys import platform
+import os
 
 class Communicator(object):
 	def __init__(self): 
@@ -59,8 +61,11 @@ class Communicator(object):
 		return data
 		
 
-	def CreateChildProcess(self,Execution_Command,Executable_File):		
-		self.ChildProcess = Popen ([Execution_Command, Executable_File], stdin = PIPE, stdout = PIPE, bufsize=0)
+	def CreateChildProcess(self,Execution_Command,Executable_File):	
+		if platform == "darwin" or platform == "linux2" or platform == "linux2":
+			self.ChildProcess = Popen ([Execution_Command, Executable_File], stdin = PIPE, stdout = PIPE, bufsize=0,preexec_fn=os.setsid)	
+		else:
+			self.ChildProcess = Popen ([Execution_Command, Executable_File], stdin = PIPE, stdout = PIPE, bufsize=0)
 		self.ModifiedOutStream = NBSR(self.ChildProcess.stdout)		
 		
 
@@ -84,8 +89,14 @@ class Communicator(object):
 		return success_flag
 	
 	def closeChildProcess(self):
-		if(self.isChildProcessNotNone()):			
-			self.ChildProcess.kill()
+		if(self.isChildProcessNotNone()):		
+			if platform == "darwin" or platform == "linux" or platform == "linux2":
+				try:
+				 	os.killpg(os.getpgid(self.ChildProcess.pid), 15)
+				except:
+					pass
+			else:	
+				self.ChildProcess.kill()
 			self.ChildProcess = None
 		
 
