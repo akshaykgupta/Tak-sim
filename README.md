@@ -7,15 +7,19 @@ This simulator has been created for the fall 2016 course COL333 (Artificial Inte
 
 ## How to use
 
-To run the server:  
-python server.py \<port no.>
+To run the server:
+```bash
+python server.py <port no.>
+```
 
 Optional arguments:  
 -n \<n> : Board size (Default: 5)  
 -TL \<time limit> : Time limit in seconds for each player (Default: 120) 
  
-To run an AI player:  
-python client.py \<server ip> \<server port> \<run.sh>
+To run an AI player:
+```bash 
+python client.py <server ip> <server port> <run.sh>
+```
 
 Optional arguments:  
 -n \<n> : Board size (Default: 5)  
