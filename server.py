@@ -25,7 +25,7 @@ class Server:
 		"""
 		s = socket.socket()
 		s.settimeout(self.NETWORK_TIMER)
-		host = socket.gethostname()
+		host = "0.0.0.0"
 		self.port = port_no		
 		s.bind((host,port_no))
 		s.listen(5)
