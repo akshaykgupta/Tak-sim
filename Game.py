@@ -131,6 +131,8 @@ class Game:
 			if move_string[0] == 'F' or move_string[0] == 'S':
 				if self.players[current_piece].flats == 0:
 					return 0
+				if self.moves == 1 and move_string[0] == 'S':
+					return 0
 				self.board[square].append((current_piece, move_string[0]))
 				self.players[current_piece].flats -= 1
 			elif move_string[0] == 'C':
@@ -309,7 +311,7 @@ class Game:
 
 		count_1 = 0
 		count_2 = 0
-		for i in xrange(total_squares):
+		for i in xrange(self.total_squares):
 			if len(self.board[i]) > 0 and self.board[i][-1][0] == 0 and self.board[i][-1][1] != 'S':
 				count_1 += 1
 			elif len(self.board[i]) > 0 and self.board[i][-1][0] == 1 and self.board[i][-1][1] != 'S':

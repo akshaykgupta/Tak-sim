@@ -13,8 +13,7 @@ class Server:
 		"""
 		self.communicator_list = []
 		self.NETWORK_TIMER = 100
-		self.INITIALTIMER = 100
-	
+		self.INITIALTIMER = 100	
 	
 	def BuildServer(self,port_no,num_clients):
 		"""Builds The server on the port_number port_no for num_clients
@@ -26,7 +25,7 @@ class Server:
 		"""
 		s = socket.socket()
 		s.settimeout(self.NETWORK_TIMER)
-		host = socket.gethostname()
+		host = "0.0.0.0"
 		self.port = port_no		
 		s.bind((host,port_no))
 		s.listen(5)
@@ -175,9 +174,11 @@ if __name__ == '__main__':
 	parser.add_argument('-NC', dest = 'num_clients', metavar = 'num_clients', type = int, default = 2, help = 'Number of clients connecting to the server')
 	parser.add_argument('-TL', dest = 'time_limit', metavar = 'time_limit', type = int, default = 120, help = 'Time limit (in s)')
 	args = parser.parse_args()
-	
+	if args.n < 5 or args.n > 7:
+		print 'Game size should be 5x5, 6x6 or 7x7.'
+		sys.exit()
 	local_Server.BuildServer(args.port, args.num_clients)
 	if(local_Server.client_count < 2):
 		local_Server.SendInitError2Clients()
-	else:		
+	else:
 		local_Server.playTak(args.n,args.time_limit,0,1)	
