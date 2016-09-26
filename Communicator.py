@@ -62,7 +62,7 @@ class Communicator(object):
 		
 
 	def CreateChildProcess(self,Execution_Command,Executable_File):	
-		if platform == "darwin" or platform == "linux2" or platform == "linux2":
+		if platform == "darwin" or platform == "linux" or platform == "linux2":
 			self.ChildProcess = Popen ([Execution_Command, Executable_File], stdin = PIPE, stdout = PIPE, bufsize=0,preexec_fn=os.setsid)	
 		else:
 			self.ChildProcess = Popen ([Execution_Command, Executable_File], stdin = PIPE, stdout = PIPE, bufsize=0)
