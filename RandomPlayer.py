@@ -182,7 +182,7 @@ class Game:
 				if self.moves != player and self.players[player].capstones > 0:
 					all_moves.append('C' + self.all_squares[i])
 		for i in xrange(len(self.board)):
-			if len(self.board[i]) > 0 and self.board[i][-1][0] == player:
+			if len(self.board[i]) > 0 and self.board[i][-1][0] == player and self.moves != player:
 				all_moves += self.generate_stack_moves(i)
 		return all_moves
 

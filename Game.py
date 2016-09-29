@@ -145,6 +145,8 @@ class Game:
 			else:
 				return 0
 		elif move_string[0].isdigit():
+			if self.moves <= 1:
+				return 0
 			count = int(move_string[0])
 			if count <= 0 or count > self.max_movable:
 				return 0
