@@ -250,7 +250,10 @@ def game_loop(game, args):
 			message['action'] = 'KILLPROC'
 			message['meta'] = 'INVALID MOVE'
 			print 'INVALID MOVE ON THIS CLIENT'
-		elif success == 2 or success == 3:
+		elif success == 2 or success == 3 or success == 4:
+			# 2 : Player 1 wins
+			# 3 : Player 2 wins
+			# 4 : Game Drawn
 			message['action'] = 'FINISH'
 			message['data'] = move['data']
 			if success == 2:
@@ -259,12 +262,15 @@ def game_loop(game, args):
 					print 'YOU WIN!'
 				else:
 					print 'YOU LOSE :('
-			else:
+			elif success == 3:
 				message['meta'] = '2 wins'
 				if(player_id == '2'):
 					print 'YOU WIN!'
 				else:
 					print 'YOU LOSE :('
+			else:
+				message['meta'] = 'Game Drawn'
+				print 'GAME DRAWN'
 		elif success == 1:
 			message = move
 		client.SendData2Server(message)
@@ -275,17 +281,22 @@ def game_loop(game, args):
 			move = move.strip()
 			print "The other player played " + move
 			success = game.execute_move(move)
-			if(success == 2 or success == 3):
+			if success == 2 or success == 3 or success == 4:
+				# 2 : Player 1 wins
+				# 3 : Player 2 wins
+				# 4 : Game Drawn
 				if success == 2:						
 					if(player_id == '1'):
 						print 'YOU WIN!'
 					else:
 						print 'YOU LOSE :('
-				else:						
+				elif success == 3:						
 					if(player_id == '2'):
 						print 'YOU WIN!'
 					else:
 						print 'YOU LOSE :('
+				else :
+					print 'GAME DRAWN'
 				break
 			else:					
 				client.SendData2Process(move)
