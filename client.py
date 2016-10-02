@@ -296,7 +296,7 @@ def game_loop(game, args):
 					else:
 						print 'YOU LOSE :('
 				else :
-					print 'Game Drawn'
+					print 'GAME DRAWN'
 				break
 			else:					
 				client.SendData2Process(move)
