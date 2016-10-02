@@ -111,6 +111,7 @@ class Game:
 		1 if move is valid
 		2 if player 1 wins
 		3 if player 2 wins
+		4 if match drawn
 		'''
 		move_string = move_string.strip()
 		# pdb.set_trace()
@@ -209,13 +210,7 @@ class Game:
 		else:
 			return 0
 		winner = -1
-			   
-		filled_board = True
-		for i in xrange(self.total_squares):
-			if(len(self.board[i]) == 0):
-				filled_board = False
-				break
-
+		filled_board = all(len(sqr) > 0 for sqr in self.board)
 		if self.check_road_win(self.turn):
 			self.winner['player'] = self.turn
 			self.winner['type'] = 'road'
@@ -333,6 +328,8 @@ class Game:
 			return 3
 		elif self.players[0].flats > self.players[1].flats:
 			return 2
+		else:
+			return 4
 
 	def calculate_score(self, player):
 		'''Calculates the score of the player
@@ -346,10 +343,6 @@ class Game:
 				count_1 += 1
 			elif len(self.board[i]) > 0 and self.board[i][-1][0] == 1 and self.board[i][-1][1] != 'S':
 				count_2 += 1
-		if player != self.winner['player'] and player == 0:
-			return count_1
-		elif player != self.winner['player'] and player == 1:
-			return count_2
 		if self.winner['type'] == 'road':
 			return self.players[player].flats + self.total_squares
 		elif self.winner['type'] == 'flat':
