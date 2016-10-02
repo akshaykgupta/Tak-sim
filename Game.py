@@ -344,10 +344,19 @@ class Game:
 			elif len(self.board[i]) > 0 and self.board[i][-1][0] == 1 and self.board[i][-1][1] != 'S':
 				count_2 += 1
 		if self.winner['type'] == 'road':
-			return self.players[player].flats + self.total_squares
+			if self.winner['player'] == player:
+				return self.players[player].flats + self.total_squares
+			elif player == 0:
+				return count_1
+			else:
+				return count_2
 		elif self.winner['type'] == 'flat':
-			if player == 0:
+			if (self.winner['player'] == player or self.winner['player'] == 2) and player == 0:
 				return self.players[player].flats + count_1
-			elif player == 1:
+			elif (self.winner['player'] == player or self.winner['player'] == 2) and player == 1:
 				return self.players[player].flats + count_2
+			elif player == 0:
+				return count_1
+			elif player == 1:
+				return count_2
 
