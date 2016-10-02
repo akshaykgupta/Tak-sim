@@ -209,12 +209,12 @@ class Game:
 		else:
 			return 0
 		winner = -1
-               
-                filled_board = True
-                for i in xrange(self.total_squares):
-                    if(len(self.board[i]) == 0):
-                        filled_board = False
-                        break
+			   
+		filled_board = True
+		for i in xrange(self.total_squares):
+			if(len(self.board[i]) == 0):
+				filled_board = False
+				break
 
 		if self.check_road_win(self.turn):
 			self.winner['player'] = self.turn
@@ -329,9 +329,9 @@ class Game:
 			return 2
 		elif count_2 > count_1:
 			return 3
-		elif self.players[0].flats == 0:
+		elif self.players[0].flats < self.players[1].flats:
 			return 3
-		elif self.players[1].flats == 0:
+		elif self.players[0].flats > self.players[1].flats:
 			return 2
 
 	def calculate_score(self, player):
