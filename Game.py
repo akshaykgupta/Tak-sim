@@ -209,6 +209,13 @@ class Game:
 		else:
 			return 0
 		winner = -1
+               
+                filled_board = True
+                for i in xrange(self.total_squares):
+                    if(len(self.board[i]) == 0):
+                        filled_board = False
+                        break
+
 		if self.check_road_win(self.turn):
 			self.winner['player'] = self.turn
 			self.winner['type'] = 'road'
@@ -217,7 +224,7 @@ class Game:
 			self.winner['player'] = 1 - self.turn
 			self.winner['type'] = 'road'
 			winner = 3 - self.turn
-		elif self.players[0].flats == 0 or self.players[1].flats == 0:
+		elif self.players[0].flats == 0 or self.players[1].flats == 0 or filled_board:
 			winner = self.check_flat_win()
 			self.winner['player'] = winner - 2
 			self.winner['type'] = 'flat'
