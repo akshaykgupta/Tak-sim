@@ -5,15 +5,14 @@ import argparse
 class Server:
 	def __init__(self):
 		"""	
-			Constructor. Initializes the communicator_list to [] and the NETWORK_TIMER to 60 and INITIALTIMER to 60
+			Constructor. Initializes the communicator_list to [] and the NETWORK_TIMER to 500 
 		Args:
 			None
 		Returns:
 			None
 		"""
 		self.communicator_list = []
-		self.NETWORK_TIMER = 100
-		self.INITIALTIMER = 100	
+		self.NETWORK_TIMER = 500
 	
 	def BuildServer(self,port_no,num_clients):
 		"""Builds The server on the port_number port_no for num_clients
