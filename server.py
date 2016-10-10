@@ -12,7 +12,7 @@ class Server:
 			None
 		"""
 		self.communicator_list = []
-		self.NETWORK_TIMER = 500
+		self.NETWORK_TIMER = 150
 	
 	def BuildServer(self,port_no,num_clients):
 		"""Builds The server on the port_number port_no for num_clients
