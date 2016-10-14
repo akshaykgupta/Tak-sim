@@ -13,7 +13,11 @@ class Server:
 		"""
 		self.communicator_list = []
 		self.NETWORK_TIMER = 150
-	
+		self.log_file_handle = None
+
+	def setLogFile(self, filename):
+		self.log_file_handle = open(filename,'wb')
+
 	def BuildServer(self,port_no,num_clients):
 		"""Builds The server on the port_number port_no for num_clients
 		Args:
@@ -149,6 +153,8 @@ class Server:
 				print data, 'Received from client 0'
 				data = json.loads(data)
 				if data['action'] == 'FINISH' or data['action'] == 'KILLPROC':
+					if not self.log_file_handle is None:
+						self.log_file_handle.write(data['meta'])
 					break		
 				data = self.RecvDataFromClient(client_1)
 				print data, 'Received from client 1'
@@ -157,6 +163,8 @@ class Server:
 					break
 				data = json.loads(data)
 				if data['action'] == 'FINISH' or data['action'] == 'KILLPROC':
+					if not self.log_file_handle is None:
+						self.log_file_handle.write(data['meta'])
 					break
 			self.CloseClient(client_0)
 			self.CloseClient(client_1)
@@ -172,10 +180,13 @@ if __name__ == '__main__':
 	parser.add_argument('-n', dest = 'n', metavar = 'N', type = int, default = 5, help = 'Tak board size')
 	parser.add_argument('-NC', dest = 'num_clients', metavar = 'num_clients', type = int, default = 2, help = 'Number of clients connecting to the server')
 	parser.add_argument('-TL', dest = 'time_limit', metavar = 'time_limit', type = int, default = 120, help = 'Time limit (in s)')
+	parser.add_argument('-LOG',dest = 'log_file', metavar = 'log_file', type = str, default = "", help = 'Logger File for Evaluation purposes')
 	args = parser.parse_args()
 	if args.n < 5 or args.n > 7:
 		print 'Game size should be 5x5, 6x6 or 7x7.'
 		sys.exit()
+	if args.log_file != '':
+		local_Server.setLogFile(args.log_file)
 	local_Server.BuildServer(args.port, args.num_clients)
 	if(local_Server.client_count < 2):
 		local_Server.SendInitError2Clients()

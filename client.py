@@ -8,7 +8,7 @@ import argparse
 class Client(Communicator):
 	def __init__(self):
 		self.GAME_TIMER = 100000 # in Milli Seconds
-		self.NETWORK_TIMER = 500
+		self.NETWORK_TIMER = 150
 		super(Client,self).__init__()
 		pass	
 	
@@ -136,7 +136,7 @@ class Client(Communicator):
 			if(data['action'] == 'NORMAL' or data['action'] == 'INIT'):
 				retData = data['data']			
 			elif(data['action'] == 'KILLPROC'):
-				print 'ERROR : ' + data['meta'] + ' ON OTHER CLIENT'
+				print 'ERROR : ' + data['meta'] + ' ,ON OTHER CLIENT'
 				super(Client,self).closeChildProcess()
 				super(Client,self).closeSocket()				
 			elif(data['action'] == 'FINISH'):
@@ -183,7 +183,8 @@ class Client(Communicator):
 			if(self.GAME_TIMER > 0):
 				retData = {'meta':'','action':'NORMAL','data':data}
 			else:
-				retData = {'meta':'TIMEOUT','action':'KILLPROC','data':''}				
+				retData = {'meta':'TIMEOUT','action':'KILLPROC','data':''}
+				print 'ERROR : THIS CLIENT STOPPED UNEXPECTEDLY OR TIMED OUT'			
 		return retData
 	
 	
@@ -239,6 +240,7 @@ def game_loop(game, args):
 	while(True):			
 		move = client.RecvDataFromProcess()						
 		if move['action'] == 'KILLPROC':
+			move['meta'] = move['meta'] + ' BY PLAYER ' + player_id
 			client.SendData2Server(move)
 			break
 		move['data'] = move['data'].strip()
@@ -246,30 +248,32 @@ def game_loop(game, args):
 		success = game.execute_move(move['data'])
 		message = {}
 		if success == 0:
+			# TODO : DECIDE THE SCORING FOR THIS CASE
 			message['data'] = ''
 			message['action'] = 'KILLPROC'
-			message['meta'] = 'INVALID MOVE'
+			message['meta'] = 'INVALID MOVE BY PLAYER ' + player_id
 			print 'INVALID MOVE ON THIS CLIENT'
 		elif success == 2 or success == 3 or success == 4:
 			# 2 : Player 1 wins
 			# 3 : Player 2 wins
 			# 4 : Game Drawn
+			score = "(" + str(game.calculate_score(0) ) + "," + str(game.calculate_score(1) ) + ")"
 			message['action'] = 'FINISH'
 			message['data'] = move['data']
 			if success == 2:
-				message['meta'] = '1 wins'
+				message['meta'] = '1 wins WITH SCORE : '+score
 				if(player_id == '1'):
 					print 'YOU WIN!'
 				else:
 					print 'YOU LOSE :('
 			elif success == 3:
-				message['meta'] = '2 wins'
+				message['meta'] = '2 wins WITH SCORE : '+score
 				if(player_id == '2'):
 					print 'YOU WIN!'
 				else:
 					print 'YOU LOSE :('
 			else:
-				message['meta'] = 'Game Drawn'
+				message['meta'] = 'Game Drawn WITH SCORE : '+score
 				print 'GAME DRAWN'
 		elif success == 1:
 			message = move
