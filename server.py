@@ -27,6 +27,7 @@ class Server:
 			None		
 		"""
 		s = socket.socket()
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		s.settimeout(self.NETWORK_TIMER)
 		host = "0.0.0.0"
 		self.port = port_no		
